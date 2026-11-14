@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 — 2026-11-15
+
+- 新增 `docs/07-tracker-and-snapshots.md`：票据与快照
+  （人类规模工作迁入本地部署 tracker 的理由；状态以快照回仓库以保住
+  开机读文件与备份纪律；机器/人类两层分开；关单单点的失败教训；试点对账）。
+
 ## 0.2.0 — 2026-11-15
 
 - 新增 `docs/05-uncertainty-and-tool-invention.md`：研究不确定性的方法与工具发明流水线

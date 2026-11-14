@@ -37,6 +37,7 @@ authorship and review, and an evidence ledger that survives scaling.
 | [docs/04-evidence.md](docs/04-evidence.md) | 证据纪律：事前预测、全局试验计数、暴露登记、已看方向标记、变异测试、前向验证 |
 | [docs/05-uncertainty-and-tool-invention.md](docs/05-uncertainty-and-tool-invention.md) | 研究不确定性：为什么经典概率论不对题；先证可识别性边界，再发明新数学工具的流水线 |
 | [docs/06-mechanism-assurance.md](docs/06-mechanism-assurance.md) | 机制的自我保证：活性（定时叫醒/漏接检测）、正确性、六种故障的恢复、防腐与降级模式 |
+| [docs/07-tracker-and-snapshots.md](docs/07-tracker-and-snapshots.md) | 票据与快照：人类规模的工作迁入本地 tracker，为什么必须配快照回仓库；机器规模与人类规模的分层；关单单点的教训 |
 | [templates/](templates/) | 可直接抄用的模板：认领卡、交付块、预登记页、工具卡、每日一页 |
 | [reference/claimboard.py](reference/claimboard.py) | 认领板的最小参考实现（只追加日志 + 三值结局校验） |
 
