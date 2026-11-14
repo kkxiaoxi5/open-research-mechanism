@@ -40,6 +40,7 @@ authorship and review, and an evidence ledger that survives scaling.
 | [docs/07-tracker-and-snapshots.md](docs/07-tracker-and-snapshots.md) | 票据与快照：人类规模的工作迁入本地 tracker，为什么必须配快照回仓库；机器规模与人类规模的分层；关单单点的教训 |
 | [templates/](templates/) | 可直接抄用的模板：认领卡、交付块、预登记页、工具卡、每日一页 |
 | [reference/claimboard.py](reference/claimboard.py) | 认领板的最小参考实现（只追加日志 + 三值结局校验） |
+| [agent/](agent/) | 整套机制的可运行参考实现（zero-dependency deep agent）：拆题派叶、复核复算、三态关单、票据与快照、只读看板；模型后端可插拔，免 key 可跑演示 |
 
 ## 快速开始
 
