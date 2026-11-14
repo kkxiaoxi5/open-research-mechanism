@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 — 2026-11-15
+
+- 新增 `agent/PLAN.md`：v0.2–v0.5 计划书（Swarm 式协作对标 Antigravity /swarm、
+  Claude Code 式对话与任务分支 UI、Docker 服务端部署；含分期验收与
+  「对话可分支、台账不可分支」的硬取舍）。三份 agent README 加路线图链接。
+
 ## 0.4.1 — 2026-11-15
 
 - 三语文档：主 README 新增英文版 `README.en.md` 与日文版 `README.ja.md`；

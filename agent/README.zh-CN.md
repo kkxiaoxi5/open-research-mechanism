@@ -40,6 +40,12 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://12
 其余部件——认领板、票据、快照、看板——全部不变：
 **内容与密钥留在你自己的机器上，被分享的只有机制。**
 
+## 路线图
+
+[PLAN.md](PLAN.md) 是 v0.2–v0.5 的计划书：Swarm 式协作（命名成员、
+带提及的共享留言板、睡眠唤醒、监视员、跨模型复核）、Claude Code 式
+对话界面与任务分支、Docker 服务端部署——每期都预先写明验收标准。
+
 ## v0.1 的范围
 
 刻意做小：单机、无分布式、无权限系统（部署在你内网自身的

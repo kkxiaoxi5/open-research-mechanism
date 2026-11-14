@@ -45,6 +45,14 @@ and `run` uses it instead of the mock. Everything else — board,
 tickets, snapshots, dashboard — is unchanged: **content and keys stay
 on your machine; only the mechanism is shared.**
 
+## Roadmap
+
+[PLAN.md](PLAN.md) is the written plan for v0.2–v0.5: Swarm-style
+collaboration (named members, a shared message board with mentions,
+sleep/wake, a monitor, cross-model verification), a Claude Code-style
+conversation UI with task branching, and Docker server deployment —
+each phase with acceptance criteria fixed in advance.
+
 ## Scope of v0.1
 
 Deliberately minimal: single machine, no distributed workers, no
