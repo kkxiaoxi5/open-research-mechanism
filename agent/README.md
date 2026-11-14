@@ -1,5 +1,7 @@
 # mechanism-agent — the mechanism, as runnable code
 
+[简体中文](README.zh-CN.md) | **English** | [日本語](README.ja.md)
+
 The documents in this repository describe a mechanism for multi-agent
 research that does not drift, stall, or fool itself. This folder is the
 same mechanism as a small, dependency-free reference implementation

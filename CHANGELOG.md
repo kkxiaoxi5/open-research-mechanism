@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 — 2026-11-15
+
+- 三语文档：主 README 新增英文版 `README.en.md` 与日文版 `README.ja.md`；
+  `agent/README` 补齐简体中文版与日文版；四份 README 顶部互加语言切换链接。
+  （docs/ 正文的三语化为后续工作。）
+
 ## 0.4.0 — 2026-11-15
 
 - 新增 `agent/`：整套机制的可运行参考实现（deep-agent 形态，零依赖标准库）：
