@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-11-15
+
+- `agent/` 捆绑六个必需 skills（`agent/skills/`，标准 SKILL.md 格式）：
+  leaf-splitting（拆叶）、known-answer-tests（已知答案测试）、
+  counterexample-hunting（反例猎杀）、proof-review（证明复核）、
+  formalization（形式化）、evidence-accounting（证据记账）。
+  新增 `skills.py` 加载器（按角色注入提示词）与 `skills` 命令；
+  agent 包版本升至 0.2.0；测试增至 5 个，全过。
+
 ## 0.4.3 — 2026-11-15
 
 - `agent/PLAN.md` 登记用户决定：主场景为**数学研究**（待决③关闭）。

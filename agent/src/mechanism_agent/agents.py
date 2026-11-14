@@ -49,16 +49,18 @@ CHECKERS = {
 
 
 class Worker:
-    def __init__(self, name: str, backend):
+    def __init__(self, name: str, backend, skills_prompt: str = ""):
         self.name = name
         self.backend = backend
+        self.skills_prompt = skills_prompt
 
     def work(self, board, leaf: dict) -> str:
         """Claim already made by the orchestrator. Returns an action tag."""
         reply = self.backend.complete(
             "You are a research worker. Answer the task with one final "
             "value or claim. If the task cannot be answered as stated, "
-            "reply with exactly: SPLIT",
+            "reply with exactly: SPLIT"
+            + (f"\n\n{self.skills_prompt}" if self.skills_prompt else ""),
             f"Task: {leaf['task']}\nMOCK:{leaf['leaf_id']}")
         if reply.strip() == "SPLIT":
             board.stuck(leaf["leaf_id"], self.name,

@@ -67,9 +67,10 @@ def cmd_run(home: str) -> None:
     p = _paths(home)
     board, tickets = Board(p["board"]), Tickets(p["tickets"])
     backend = backend_from_env(DEMO_MOCK)
+    from .skills import prompt_block
     orch = Orchestrator(board, tickets,
-                        workers=[Worker("worker-1", backend),
-                                 Worker("worker-2", backend)],
+                        workers=[Worker("worker-1", backend, prompt_block("worker")),
+                                 Worker("worker-2", backend, prompt_block("worker"))],
                         reviewer=Reviewer("reviewer-1"),
                         snapshot_dir=p["snapshot"])
     print(json.dumps(orch.cycle(), ensure_ascii=False, indent=1))
@@ -79,6 +80,13 @@ def cmd_snapshot(home: str) -> None:
     p = _paths(home)
     snap = export_snapshot(Board(p["board"]), Tickets(p["tickets"]), p["snapshot"])
     print(json.dumps(snap["counts"], ensure_ascii=False))
+
+
+def cmd_skills() -> None:
+    from .skills import discover
+    for s in discover():
+        print(f"{s['name']}: {s['description']} "
+              f"[roles: {', '.join(s.get('roles', []))}]")
 
 
 def cmd_serve(home: str, port: int) -> None:
@@ -95,6 +103,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("seed-demo")
     sub.add_parser("run")
     sub.add_parser("snapshot")
+    sub.add_parser("skills")
     sv = sub.add_parser("serve")
     sv.add_argument("--port", type=int, default=8765)
     args = ap.parse_args(argv)
@@ -106,6 +115,8 @@ def main(argv: list[str] | None = None) -> None:
         cmd_run(args.home)
     elif args.cmd == "snapshot":
         cmd_snapshot(args.home)
+    elif args.cmd == "skills":
+        cmd_skills()
     elif args.cmd == "serve":
         cmd_serve(args.home, args.port)
 

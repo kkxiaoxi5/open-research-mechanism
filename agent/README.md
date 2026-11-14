@@ -18,6 +18,7 @@ an intranet machine — can run it end to end.
 | `backend.py` | Pluggable model backends: a deterministic mock (runs the demo with no keys) and an OpenAI-compatible client for a real model, public or intranet. |
 | `tracker.py` | Human-scale tickets (tasks / questions / decisions, with a decision queue) and **snapshot export** back into files — tracker state never lives only inside a service. |
 | `dashboard.py` | Read-only web dashboard: decision queue first, then the board, tickets, and closed-leaf evidence. It has no write path. |
+| `skills/` + `skills.py` | Six bundled playbooks (leaf splitting, known-answer tests, counterexample hunting, proof review, formalization, evidence accounting), loaded by role into each agent's prompt — the working habits ship with the machinery. List them with the `skills` command. |
 
 ## Run the demo (no keys, one minute)
 

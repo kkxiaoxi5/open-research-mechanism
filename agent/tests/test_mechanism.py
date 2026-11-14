@@ -66,5 +66,17 @@ class FullLoop(unittest.TestCase):
         self.assertEqual(len(tickets.decision_queue()), 1)
 
 
+class BundledSkills(unittest.TestCase):
+    def test_skills_discover_and_parse(self):
+        from mechanism_agent.skills import discover, for_role, prompt_block
+        skills = discover()
+        names = {s["name"] for s in skills}
+        self.assertEqual(names, {"leaf-splitting", "known-answer-tests",
+                                 "counterexample-hunting", "proof-review",
+                                 "formalization", "evidence-accounting"})
+        self.assertTrue(for_role("reviewer"))
+        self.assertIn("proof-review", prompt_block("reviewer"))
+
+
 if __name__ == "__main__":
     unittest.main()
