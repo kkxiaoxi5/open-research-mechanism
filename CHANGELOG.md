@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.10.0 — 2026-11-15
+
+- Console restyled as a pixel-level imitation of the Claude Code
+  terminal UI (agent package 0.7.0): near-black background and
+  monospace type throughout; welcome box with the orange ✻ spark;
+  user messages on a highlighted bar with a `>` prompt; board events
+  as `● Tool` lines with `⎿` result connectors; an animated ✻
+  spinner with a rotating thinking verb while a round runs; a
+  slash-command popup above the composer; the input box gains the
+  `⏵⏵` mode line and `? for shortcuts`; the status line shows a
+  block-character (█░) leaf-progress meter; cards and colored
+  buttons removed in favour of plain terminal text, `❯` selection
+  markers, and parenthesised status tags. All functions unchanged
+  (agent management, per-agent model parameters, relation graph,
+  persistent forkable chat, prompt navigator, EN/JA toggle).
+
 ## 0.9.0 — 2026-11-15
 
 - Languages: everything except the READMEs is now English-first with
