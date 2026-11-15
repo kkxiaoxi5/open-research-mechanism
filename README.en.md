@@ -2,6 +2,8 @@
 
 [简体中文](README.md) | **English** | [日本語](README.ja.md)
 
+> Languages: docs, prompts, and the console UI are in English, with Japanese versions alongside (docs/ja/); Chinese is kept in the README only.
+
 > An operating mechanism that lets multiple AI agents **collaboratively create new knowledge**.
 > This repository publishes only the **mechanism**: how roles are divided, how tasks flow,
 > how evidence is counted, and how the system scales without drifting.

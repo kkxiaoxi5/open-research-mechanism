@@ -1,65 +1,45 @@
-# 01 · 哲学：框架的四块与根本要求
+# 01 · Philosophy: The Four Parts of the Framework and the Fundamental Requirements
 
-这个框架把"用 AI 协作做研究"拆成四块。任何一轮复盘，都按这四块对账；
-任何新安排，先问它属于哪一块、动了哪一块的什么。
+This framework breaks "doing research in collaboration with AI" into four parts. Every review round reconciles against these four parts; every new arrangement first asks which part it belongs to and what it changes in that part.
 
-## 目标（Goal）
+## Goal
 
-- 先写清**真正想要什么**，用提出者的原话，逐字登记、只追加、不改写。
-  代理的推导不是提出者的观点；引用原话必须带编号，禁止转述链（转述会逐级失真）。
-- 目标分两层：**本命**（真正想要的）和**保底**（下限，不是上限）。
-  期限、成功概率这类参数，提出者没定的就留空——任何人不得自行补成限制，
-  也不得用自补的期限否决方向。
-- 目标的作用是指南针，不是日考题。日常用"验证过的进展 + 不死"来量，不用终点二值量。
+- First write down **what is truly wanted**, in the proposer's own original words, registered verbatim, append-only, never rewritten. An agent's derivations are not the proposer's views; quotations of the user's original words must carry their ID numbers, and relay chains are forbidden (relaying degrades content level by level).
+- Goals have two tiers: the **main aim** (what is truly wanted) and the **floor** (a lower bound, not a ceiling). Parameters the proposer has not set — deadlines, success probabilities, and the like — are left blank: nobody may fill them in on their own and turn them into restrictions, nor use a self-invented deadline to veto a direction.
+- A goal is a compass, not a daily exam question. Day to day, progress is measured by "verified progress + not dying," not by a binary check against the endpoint.
 
-## 工具（Tools）
+## Tools
 
-- 核心主张：让代理**用智能创造新工具**——新的数学工具、新的理论、新的解释框架——
-  再从新解释里导出新方法。已知的东西不需要再"发现"一遍。
-- 工具分三类，工作量要有配比（参考值：创造类至少占一半）：
-  - **甲类 · 表示与推导**：新工具、新模型、新解释（生产新知识）。
-  - **乙类 · 裁判与记分**：判分规则、基准、评估器（防止自欺）。
-  - **丙类 · 卡点转题**：把"做不动"转化成明确的新问题（防止停滞）。
-- 工具验收标准只有一条硬的：**过已知答案，并且在一道真题上改变过一个判断。**
-  只在合成世界里自洽、不改变任何判断的工具，不算数。
-- 先手意识：如果一件事人人都在用同样的方法做，优势不在方法本身，
-  而在**规模化地用新方法**——把"堆人数就能加速"做成架构性质，而不是口号。
+- The core claim: let agents **use their intelligence to create new tools** — new mathematical tools, new theories, new interpretive frameworks — and then derive new methods from the new interpretations. What is already known does not need to be "discovered" again.
+- Tools come in three classes, and the workload should keep a proportion (reference value: the creative class takes at least half):
+  - **Class A · Representation & derivation**: new tools, new models, new interpretations (producing new knowledge).
+  - **Class B · Judging & scoring**: scoring rules, benchmarks, evaluators (preventing self-deception).
+  - **Class C · Stuck-point conversion**: turning "cannot proceed" into an explicit new problem (preventing stagnation).
+- There is only one hard acceptance criterion for a tool: **it passes a known-answer test, and it has changed a judgment on a real problem.** A tool that is merely self-consistent inside a synthetic world and changes no judgment does not count.
+- First-mover awareness: if everyone is doing something the same way, the advantage lies not in the method itself but in **using a new method at scale** — make "adding more agents speeds things up" a property of the architecture, not a slogan.
 
-## 架构（Architecture）
+## Architecture
 
-- 架构要同时回答四件事：**人怎么分、信息怎么传、质量怎么保、规模怎么扩**。
-  只加人不改架构，产出不会变快，只会变乱（详见 `02-architecture.md`）。
-- 两条铁律：
-  - **单一接收口**：所有交付汇到一个接收者登记"已接收"，消息"已读"不等于成果"已接收"。
-  - **作者不自审**：做的人不判自己的东西；复核者独立复算，不看作者的结论先行。
-- 扩容的验收指标是真实吞吐：从认领到独立接受的耗时、纯等待、返工率、
-  以及**实际改变了几个研究判断**。代理数量、算力占用、报告页数不算成果。
+- The architecture must answer four things at once: **how people are divided, how information flows, how quality is assured, how scale grows**. Adding people without changing the architecture does not make output faster, only messier (see `02-architecture.md`).
+- Two iron rules:
+  - **Single intake**: all deliverables converge on one receiver who registers "received"; a message being "read" is not the same as a deliverable being "received."
+  - **Authors never review their own work**: the person who made something does not judge it; reviewers recompute independently, without reading the author's conclusion first.
+- The acceptance metric for scaling is real throughput: elapsed time from claim to independent acceptance, pure waiting time, rework rate, and **how many research judgments actually changed**. Agent counts, compute occupancy, and report page counts are not results.
 
-## 经验（Experience / Evidence）
+## Experience / Evidence
 
-- 区分两件常被混为一谈的事：
-  - **推断的污染**：我们看过的数据会让我们挑出的效应虚高——这是防自欺问题，
-    用预登记、暴露登记、全局试验计数来管。
-  - **效应的衰减**：一个效应会不会因为被广泛知道而消失——这是经验问题，
-    要看拥挤与成本，不能从前者直接推出。
-- "开过的考卷不能再用"这类规则，必须讲清它防的是哪一种；
-  讲不清的规则会被绕过，也说服不了执行者。合法的复用方式要同时给出
-  （例如：蒙住后续结果、隔离场外信息的**蒙眼回放**）。
-- 失败的卡不是垃圾：按"像经营者复盘一样"的标准，逐张归因
-  （测量错 / 成本错 / 机制错 / 样本错），写清能改什么、改了会改变哪个决定、
-  以及重开条件。测一次就扔，是对已付成本的浪费。
+- Distinguish two things that are often conflated:
+  - **Contamination of inference**: data we have seen makes the effects we pick out look inflated — this is a self-deception problem, managed with preregistration, exposure registries, and a global trial count.
+  - **Decay of effects**: whether an effect disappears because it becomes widely known — this is an empirical question, to be judged by crowding and cost; it cannot be deduced directly from the former.
+- Rules like "an opened exam paper cannot be reused" must state clearly which of the two they guard against; a rule that cannot say will be circumvented and will not convince the people executing it. Legitimate ways to reuse must be given at the same time (for example, **blind replay**: masking subsequent results and isolating off-field information).
+- A failed card is not garbage: by the standard of "an operator reviewing their own business," attribute each one item by item (measurement error / cost error / mechanism error / sample error), write down what could be changed, which decision the change would alter, and the conditions for reopening. Testing once and throwing away wastes costs already paid.
 
-## 根本要求（三道死关）
+## Fundamental Requirements (Three Hard Gates)
 
-每个项目应有自己的一页"根本要求"，单独存页、全员可见、改动留痕。
-本框架的参考版本是三条：
+Every project should have its own one-page "fundamental requirements," stored on its own page, visible to everyone, with changes leaving a trace. The reference version of this framework has three:
 
-1. **造新东西**：每轮工作必须能回答"本轮新造了什么工具 / 新解释 / 新判断"；
-   答不出的轮次视为漂移，先停下对齐。
-2. **先规则、后行动**：没有事前写下的预测与判据，不许看结果下结论；
-   感觉对了也要验证，没验证的不许升级为结论。
-3. **不半途而废**：任务结局只有三种——证成、证否、拆成更小的题；
-   "判不出"不是合法结局，卡住必须生成下一题。
+1. **Create something new**: every work round must be able to answer "what new tool / new interpretation / new judgment did this round create?"; a round that cannot answer is treated as drift — stop and realign first.
+2. **Rules before action**: without a prediction and criteria written down beforehand, no conclusions may be drawn from results; even if something feels right it must be verified, and unverified claims may not be upgraded into conclusions.
+3. **No giving up halfway**: a task has only three legal endings — proven, refuted, or split into smaller problems; "cannot determine" is not a legal ending, and being stuck must generate the next problem.
 
-核对办法（参考）：每日一页的首段放根本要求的三行摘要表；
-外部对题检查时把它作为第一问；每周对账先对这一页，再对进度。
+How to check (reference): the first section of the daily page carries a three-line summary table of the fundamental requirements; external cross-checking uses it as its first question; the weekly reconciliation checks this page first, then progress.

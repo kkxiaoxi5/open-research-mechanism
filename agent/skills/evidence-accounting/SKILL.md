@@ -4,7 +4,7 @@ description: Keep the trial count, exposure registry and seen-direction marks ho
 roles: [coordinator, worker, reviewer]
 ---
 
-# Evidence accounting（证据记账）
+# Evidence accounting
 
 Selection is invisible unless it is written down. This skill is the
 writing-down: every look at data, every test, every citation leaves a

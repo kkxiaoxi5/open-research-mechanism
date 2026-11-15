@@ -4,7 +4,7 @@ description: Adversarially search for counterexamples to a claim before anyone t
 roles: [worker, reviewer]
 ---
 
-# Counterexample hunting（反例猎杀）
+# Counterexample hunting
 
 A claim that has survived a serious attempt to kill it is worth a
 proof attempt. A claim that has not is a rumor. Hunting comes first

@@ -1,140 +1,141 @@
-# 计划书：mechanism-agent v0.2–v0.5
-## Swarm 式协作 + 对话任务分支 UI + Docker 服务端部署
+# Plan: mechanism-agent v0.2–v0.5
+## Swarm-style collaboration + conversational task-branching UI + Docker server deployment
 
-- 状态：计划（未开工）。基线：`agent/` v0.1（已发布，提交 79c3e100）。
-- 对标：Google Antigravity 的 `/swarm`（命名代理团队 + 共享留言板 + 验证者），
-  以及 Claude Code 式对话（每成员一条对话线、可分叉、可回退到检查点）。
-- 约束不变：机制与内容分离；关单三态、作者不自审、快照回仓库等 v0.1 的
-  强制规则全部保留，新功能只能长在它们上面，不能绕过。
+- Status: plan (not started). Baseline: `agent/` v0.1 (released, commit 79c3e100).
+- Benchmarks: Google Antigravity's `/swarm` (named agent teams + shared message board + verifiers),
+  and Claude Code-style conversation (one conversation thread per member, forkable, rewindable to checkpoints).
+- Constraints unchanged: mechanism separated from content; all of v0.1's enforced rules —
+  three-state closing, authors do not review their own work, snapshots back into the repo —
+  are retained in full. New features may only grow on top of them, never bypass them.
 
 ---
 
-## 1. 结论先行（可行性）
+## 1. Conclusion first (feasibility)
 
-**可行。** v0.1 的内核（认领板 = 公共台账、协调者、工作/复核分离、快照）
-恰好是 Swarm 的骨架：Antigravity 的 coordinator 拆题、命名 worker、
-公开 brief、共享 board、verifier 复核，与本机制的拆叶、认领、交付块、
-复核关单是一一对应的。缺的主要是三层：**事件/提及层**（board 从状态日志
-升级为消息总线）、**成员生命周期**（睡眠/唤醒/暂停/退场）、
-**服务端与 UI**（实时推送、对话树与分叉）。真正难的只有两处：
-并发写状态的存储接口化、以及分叉的数据模型——第 5 节给出取舍：
-**对话可以分支，台账不能分支。**
+**Feasible.** The v0.1 core (claim board = public ledger, coordinator, work/review separation, snapshots)
+is exactly the skeleton of a Swarm: Antigravity's coordinator splitting tasks, named workers,
+public briefs, shared board, and verifier review correspond one-to-one with this mechanism's
+leaf-splitting, claiming, delivery blocks, and review-based closing. What is mainly missing is three
+layers: an **event/mention layer** (the board upgraded from a state log to a message bus),
+**member lifecycle** (sleep/wake/pause/exit), and **server and UI** (real-time push, conversation
+trees and forking). Only two places are genuinely hard: making the storage interface safe for
+concurrent writes, and the data model for forking — Section 5 gives the trade-off:
+**conversations may branch; the ledger may not.**
 
-## 2. 对标功能清单（逐项映射）
+## 2. Benchmark feature list (item-by-item mapping)
 
-| Antigravity /swarm | 本计划的对应实现 | 期 |
+| Antigravity /swarm | Corresponding implementation in this plan | Phase |
 |---|---|---|
-| 当前对话成为 coordinator，拆成互不碰撞的块 | 协调者把命题拆成叶时附「互斥声明」（各叶的改动面不重叠，重叠必须显式登记） | v0.2 |
-| 命名 worker（@parser）与编号组（@fix-1..4） | 成员名册扩展：名字即岗位；同类叶自动开编号组 | v0.2 |
-| 每人一份公开 brief（负责什么/不许碰什么/完成标准） | 认领卡上板公示，字段 = 认领卡模板三栏，全员可见 | v0.2 |
-| verifier：每 2–4 个 worker 配 1 个，读 diff 跑测试、打回作者修 | 复核代理配比可配；复核可用**不同后端/模型**（跨模型复核）；新增「返修轮」：证否不直接终局，作者可修一轮再审，轮数有上限并记账 | v0.2 |
-| 共享 board，@name/@group/@all 提及；不许私聊，全部公开有序 | board 增加 post 事件流（提及、提问、交付摘要、复核结论都是一种 post）；成员间无私信通道 | v0.2 |
-| 空闲成员睡眠不耗 token，被提及才醒 | 成员状态机加 waiting：事件驱动唤醒（被提及/被派叶/租约到期），取代纯定时轮询；定时叫醒保留为兜底对账 | v0.2 |
-| @monitor：全员静默且未完成时才发声，叫能推进的人 | 监视员角色：静默检测 = 现有漏接/停滞检查的形式化，有阈值、只报事实不派活 | v0.2 |
-| 成员状态 Active / Waiting / Killed；额度耗尽→暂停（只报一次、不重试风暴），新帖/换模型/用户消息才恢复 | 状态机照此实现；后端返回额度错误→成员 paused + 板上只留一条 notice；恢复触发三条件写死 | v0.2 |
-| worker 可中途换模型，对话不丢 | 成员的 backend 是可替换字段，换模型只换字段、对话与认领不变 | v0.2 |
-| 默认共享工作区，编辑碰撞时每人一份工作副本，退场前先落地 | 每 worker 一个 git worktree；关叶前必须把改动以交付块落地，退场删除其 worktree | v0.5 |
-| Swarm 面板：Board（实时流、New 分隔、搜索过滤、Follow）/ Members（Active/待命/已退，点开进其对话）/ Graph（提及关系图、权重、回放） | Web UI 三视图照此实现（第 4 节）；Graph 的回放 = 按 board 事件序号重演 | v0.3–0.4 |
-| 可直接私信某个 worker（不进 board） | 例外通道：用户→单个成员的直达消息（答疑、批准工具调用），留痕但不进公共流；成员之间仍不许私聊 | v0.3 |
+| The current conversation becomes the coordinator, splitting work into non-colliding chunks | When the coordinator splits a proposition into leaves, it attaches a "mutual-exclusion statement" (the leaves' change surfaces do not overlap; overlaps must be explicitly registered) | v0.2 |
+| Named workers (@parser) and numbered groups (@fix-1..4) | Extended member roster: the name is the post; leaves of the same kind automatically open numbered groups | v0.2 |
+| One public brief per person (what they own / what they must not touch / completion criteria) | Claim cards posted publicly on the board; fields = the three columns of the claim-card template, visible to everyone | v0.2 |
+| Verifiers: 1 per 2–4 workers, read diffs, run tests, send work back to the author for fixes | Reviewer ratio is configurable; review may use a **different backend/model** (cross-model review); a new "rework round": a refutation is not immediately final — the author may fix for one round and be re-reviewed; rounds are capped and accounted | v0.2 |
+| Shared board, @name/@group/@all mentions; no private chat, everything public and ordered | The board gains a post event stream (mentions, questions, delivery summaries, review conclusions are all one kind of post); no private-message channel between members | v0.2 |
+| Idle members sleep without consuming tokens, woken only when mentioned | Member state machine gains `waiting`: event-driven wake-up (mentioned / assigned a leaf / lease expiry), replacing pure timed polling; timed wake-ups remain as a fallback reconciliation | v0.2 |
+| @monitor: speaks only when everyone is silent and work is unfinished, calling whoever can move it forward | A monitor role: silence detection = a formalization of the existing missed-message/stall checks, with thresholds; reports facts only, dispatches nothing | v0.2 |
+| Member states Active / Waiting / Killed; quota exhausted → paused (reported once, no retry storm), resumed only by a new post / model switch / user message | The state machine implements exactly this; a quota error from the backend → member `paused` + a single notice left on the board; the three resume triggers are fixed in writing | v0.2 |
+| A worker can switch models mid-task without losing the conversation | A member's backend is a replaceable field; switching models changes only the field — conversation and claims are unchanged | v0.2 |
+| Shared workspace by default; on edit collision, one working copy per person, landed before exit | One git worktree per worker; before a leaf closes, changes must be landed as a delivery block; on exit, its worktree is deleted | v0.5 |
+| Swarm panel: Board (real-time stream, New divider, search/filter, Follow) / Members (Active/standby/exited, click to enter their conversation) / Graph (mention graph, weights, replay) | The web UI implements the three views accordingly (Section 4); Graph replay = re-enacting by board event sequence number | v0.3–0.4 |
+| Direct messages to a single worker (not via the board) | Exception channel: user → single member direct messages (Q&A, approving tool calls), kept on record but not entering the public stream; members still may not message each other privately | v0.3 |
 
-## 3. UI：Claude Code 式对话与任务分支
+## 3. UI: Claude Code-style conversation and task branching
 
-- **每成员一条对话线**：成员的全部往来（brief、提问、交付、复核意见）
-  是一条可读的对话，和 Claude Code 的会话一样从上往下读，而不是散在日志里。
-- **任务树即分支树**：叶子拆小（拆小关单）天然就是分支——父叶关闭、
-  子叶各开一条对话线；UI 以树/图呈现「谁从谁分出来」。
-- **分叉（fork）**：用户或协调者可在任意一条对话的任意一条消息处分叉：
-  新对话以前缀为起点、换一个做法继续（例如换模型重做、换角度重问）。
-  分叉是新线，旧线原样保留——**历史不许改写**，与台账的追加式一致。
-- **检查点与回退（rewind）**：每次交付/关单在对话上形成检查点；
-  回退 = 从检查点分叉出新线，而不是把时间倒回去删记录。
-- **人的位置**：UI 第一屏仍是「等决定」队列（v0.1 看板已定）；
-  对话与分支是第二层，点任意成员/任意叶进入。
+- **One conversation thread per member**: all of a member's exchanges (brief, questions, deliveries, review comments)
+  form one readable conversation, read top to bottom like a Claude Code session, rather than scattered across logs.
+- **The task tree is a branch tree**: splitting a leaf smaller (a split closing) is naturally a branch — the parent leaf closes,
+  each child leaf opens its own conversation thread; the UI presents "who branched from whom" as a tree/graph.
+- **Forking**: the user or the coordinator may fork at any message in any conversation:
+  the new conversation starts from that prefix and continues with a different approach (e.g. redo with a different model, re-ask from a different angle).
+  A fork is a new thread; the old thread is preserved as-is — **history may not be rewritten**, consistent with the append-only ledger.
+- **Checkpoints and rewind**: each delivery/closing forms a checkpoint on the conversation;
+  rewinding = forking a new thread from a checkpoint, not turning time back and deleting records.
+- **Where the human sits**: the UI's first screen is still the "awaiting decision" queue (settled by the v0.1 board);
+  conversations and branches are the second layer, entered by clicking any member / any leaf.
 
-## 4. 服务端架构（Docker 部署）
+## 4. Server architecture (Docker deployment)
 
-单机一台服务器、docker compose 起全套；内网部署不依赖任何外部服务
-（模型端点除外，且可指向内网模型）。
+One server machine; docker compose brings up the whole stack; intranet deployment depends on no external service
+(model endpoints excepted, and those may point at intranet models).
 
 ```yaml
 services:
-  server:      # API + 协调者：board/票据的唯一写入方，SSE 推送实时流
-  worker:      # 无状态工作/复核代理进程，可 scale 多副本；只认领、不直写库
-  web:         # UI 静态资源 + 反向代理（Board/Members/Graph/对话树）
-  db:          # Postgres：board 事件、对话、票据（见第 5 节存储分层）
-  gitea:       # 可选：人类规模票据与代码托管（docs/07 的形态），或用内置票据
+  server:      # API + coordinator: sole writer of the board/tickets, SSE push of the real-time stream
+  worker:      # stateless work/review agent processes, scalable to multiple replicas; only claim, never write the store directly
+  web:         # UI static assets + reverse proxy (Board/Members/Graph/conversation tree)
+  db:          # Postgres: board events, conversations, tickets (see Section 5, storage layering)
+  gitea:       # optional: human-scale tickets and code hosting (the shape of docs/07), or use built-in tickets
 volumes:
-  state:       # 快照与导出物；定时把快照提交回 git 仓库（备份纪律不变）
+  state:       # snapshots and exports; snapshots are committed back to the git repo on a schedule (backup discipline unchanged)
 ```
 
-- **语言保持一门**：服务端继续用 Python（标准库 → 轻框架 FastAPI），
-  UI 为无构建步骤的前端（原生 JS + SSE），避免内网部署引入构建链。
-- **实时**：服务端→浏览器用 SSE（单向推送足够：board 流、成员状态）；
-  浏览器→服务端的操作（派活、直达消息、批准）走普通 POST。
-- **唯一写入方**：所有写经 server 的 API 校验（v0.1 的 board 规则原样
-  搬到服务端：三态关单、作者不自关、必填字段在服务端拦截），
-  worker 进程无直写权限——M1157 式「写崩板子」在架构上不可能再发生。
+- **One language throughout**: the server stays in Python (standard library → a light framework, FastAPI),
+  the UI is a no-build-step frontend (vanilla JS + SSE), avoiding a build chain in intranet deployment.
+- **Real-time**: server → browser uses SSE (one-way push is enough: board stream, member states);
+  browser → server operations (dispatching work, direct messages, approvals) use ordinary POSTs.
+- **Sole writer**: all writes pass through the server's API validation (v0.1's board rules moved to the server unchanged:
+  three-state closing, authors cannot close their own work, required fields intercepted server-side),
+  worker processes have no direct-write permission — an M1157-style "crashing the board by writing" becomes architecturally impossible.
 
-## 5. 数据模型与两条硬取舍
+## 5. Data model and two hard trade-offs
 
-1. **对话可以分支，台账不能分支。** board 的事件流是全队唯一的事实
-   序列，分叉只发生在对话与工作区层面：分叉出的新线读同一份台账、
-   交付仍走同一条复核路径。若允许台账分叉，两条线会各自长出
-   「已验证结论」，证据体系当场失效——这是本计划与一般多代理框架
-   最重要的区别，写死，不讨论。
-2. **存储分层**：v0.1 的 JSONL 保留为**导出/快照格式**（审计与备份）；
-   服务端运行时状态进 Postgres（并发与查询需要）。两者由 server 单向
-   导出衔接：库是运行时真源，快照是备份与开机读物——与 docs/07
-   「票据 + 快照」同一条纪律，扩到全部状态。
+1. **Conversations may branch; the ledger may not.** The board's event stream is the whole team's single sequence of facts;
+   forking happens only at the conversation and workspace level: a forked thread reads the same ledger,
+   and deliveries still go through the same review path. If the ledger were allowed to fork, the two lines would each grow
+   their own "verified conclusions" and the evidence system would fail on the spot — this is the most important difference
+   between this plan and general multi-agent frameworks. Fixed in writing, not up for discussion.
+2. **Storage layering**: v0.1's JSONL is retained as the **export/snapshot format** (audit and backup);
+   the server's runtime state goes into Postgres (concurrency and queries need it). The two are joined by one-way export
+   from the server: the database is the runtime source of truth, snapshots are backups and boot-time reading —
+   the same discipline as docs/07's "tickets + snapshots", extended to all state.
 
-## 6. 分期与验收
+## 6. Phases and acceptance
 
-| 期 | 内容 | 验收（可判定的） |
+| Phase | Content | Acceptance (decidable) |
 |---|---|---|
-| v0.2 | Swarm 运行时：post/提及层、成员状态机与睡眠唤醒、monitor、返修轮、跨模型复核、额度暂停语义 | 数学研究演示题：一个小命题集由 4 worker 分工（证明尝试/反例猎杀/引理拆分）+ 1 跨模型 verifier 复算跑通；人为让一 worker 额度报错，板上只出现一条 notice 且无重试；全员静默时 monitor 在阈值内发声 |
-| v0.3 | 服务端 + Docker：compose 起 server/worker/web/db；SSE 实时 Board 与 Members 视图；用户直达消息 | 干净机器 `docker compose up` 后，浏览器里能看板、能派活、能直达某 worker；杀掉 worker 容器不丢状态 |
-| v0.4 | 对话树与分支：每成员对话线、拆小分支可视化、任意消息分叉、检查点回退、Graph 提及图 + 回放 | 从一条对话中段分叉出新线并跑完关单，旧线与台账不受影响；回放能按事件序号重演全程 |
-| v0.5 | 工作区隔离与加固：per-worker worktree、落地检查、退场清理；额度按岗位记账面板 | 两 worker 改同一文件不互相覆盖；退场 worker 的 worktree 被清且改动已落地或已丢弃（有记录） |
+| v0.2 | Swarm runtime: post/mention layer, member state machine with sleep/wake, monitor, rework rounds, cross-model review, quota-pause semantics | Math-research demo set: one small proposition set divided among 4 workers (proof attempts / counterexample hunting / lemma splitting) + 1 cross-model verifier re-checking, run end to end; deliberately make one worker hit a quota error — the board shows exactly one notice and no retries; when all members are silent, the monitor speaks within its threshold |
+| v0.3 | Server + Docker: compose brings up server/worker/web/db; SSE real-time Board and Members views; user direct messages | On a clean machine, after `docker compose up`, in the browser you can view the board, dispatch work, and reach a specific worker directly; killing a worker container loses no state |
+| v0.4 | Conversation tree and branching: per-member conversation threads, split-branch visualization, fork from any message, checkpoint rewind, Graph mention graph + replay | Fork a new thread from the middle of a conversation and run it to closing; the old thread and the ledger are unaffected; replay can re-enact the whole course by event sequence number |
+| v0.5 | Workspace isolation and hardening: per-worker worktrees, landing checks, exit cleanup; per-post quota accounting panel | Two workers editing the same file do not overwrite each other; an exited worker's worktree is cleaned and its changes are either landed or discarded (on record) |
 
-每期沿用老规矩：先在本计划书上登记事前验收，再开工；不过验收不进下一期。
+Each phase follows the old rule: register the acceptance criteria in this plan first, then start work; a phase that fails acceptance does not proceed to the next.
 
-> 进度注记（2026-11-15）：互动控制台已先行以本地形态落地（`webapp.py`：
-> 等你定/认领板/票据/成员/动态五视图 + 开叶子、决定、直达消息、叫醒一轮，
-> 写入经 Board/Tickets 校验），一键部署三件套（deploy.sh / deploy.ps1 /
-> docker-compose）已附——v0.3 验收中「浏览器里能看板、能派活、能直达」
-> 已在单机形态达成；剩下的增量是多进程服务端化（server/worker 拆分、
-> Postgres 运行时状态）与 SSE 实时推送。
+> Progress note (2026-11-15): the interactive console has already landed ahead of schedule in local form (`webapp.py`:
+> five views — decision queue / claim board / tickets / members / activity — plus open a leaf, decide, direct message, wake a round,
+> with writes validated through Board/Tickets), and the one-click deployment trio (deploy.sh / deploy.ps1 /
+> docker-compose) is attached — of the v0.3 acceptance, "in the browser you can view the board, dispatch work, and reach directly"
+> is already achieved in single-machine form; the remaining increment is multi-process serverization (server/worker split,
+> Postgres runtime state) and SSE real-time push.
 
-## 7. 风险与待决
+## 7. Risks and open items
 
-- **并发正确性**：多 worker 同时认领/关单的竞态，靠服务端串行化写入
-  + 租约（v0.1 已有租约语义）解决；v0.2 先出并发压测再上量。
-- **上下文成本**：Swarm 式公开 board 会让每个成员读全板——大板必须有
-  过滤视图（只读与己相关），否则 token 成本随人数平方涨。这条 Antigravity
-  用「睡眠 + 提及唤醒」压，本文照用并加「成员默认只订提及自己的 post」。
-- **待用户决**：UI 登录/权限的强度（内网最小部署可先靠网络隔离，
-  但 UI 本身要可互动，见已决④）。
-- **已决（2026-11-15，用户）**：②票据用**外挂 tracker（Gitea 可）**。
-  架构上做 TrackerAdapter 接口：Gitea 为首个适配器；公司已有本地
-  GitLab 时用 GitLab 适配器（同一接口，issues/MR/CI 一体，MR 审批
-  天然对应「作者不自审」）。连接方式定版：**服务端走 REST API**
-  （token 只存 server，代理不直连）；**MCP 不需要**——它只在外部
-  对话壳代理（如 Claude Code 类工具）要操作同一 tracker 时才加；
-  **skill 需要**：票据/MR/关单纪律已捆绑为 `tracker-workflow`。
-  ④**UI 是必需品且要可互动**（用户要与系统互动）：派活、直达消息、
-  批准、分叉都从 UI 发起，但全部经 server 的 API 校验写入——
-  v0.1 看板的「只读」只是演示形态，v0.3 起 UI 是正式操作面，
-  唯一写入方仍是 server。
-- **已决（2026-11-15，用户）**：③主场景定为**数学研究**。演示题与检查器
-  生态以研究题为准：命题提出、证明尝试、反例猎杀、已知答案的符号/数值
-  复算；检查器登记表向证明检查（形式化验证接口）与符号计算方向扩展。
-  代码题降为次要场景；相应地，v0.5 的 per-worker 代码工作区（worktree）
-  优先级下调，对话分叉（证明尝试的不同路径）优先级上调——数学里
-  「换个做法再试」是主需求，「多人改同一文件」不是。
+- **Concurrency correctness**: races when multiple workers claim/close at once are solved by serialized writes at the server
+  + leases (v0.1 already has lease semantics); v0.2 produces a concurrency stress test before scaling up.
+- **Context cost**: a Swarm-style public board makes every member read the whole board — a large board must have
+  filtered views (read only what concerns you), or token cost grows quadratically with headcount. Antigravity
+  presses this down with "sleep + mention wake-up"; this plan does the same and adds "members subscribe by default only to posts that mention them".
+- **Awaiting user decision**: the strength of UI login/permissions (a minimal intranet deployment may rely on network isolation first,
+  but the UI itself must be interactive — see decided item ④).
+- **Decided (2026-11-15, user)**: ② tickets use an **external tracker (Gitea is fine)**.
+  Architecturally this is a TrackerAdapter interface: Gitea is the first adapter; where a company already runs a local
+  GitLab, a GitLab adapter is used (same interface, issues/MR/CI in one, MR approval natively corresponding to "authors do not review their own work"). The connection method is settled: **the server calls the REST API**
+  (the token lives only on the server; agents do not connect directly); **MCP is not needed** — it is added only when an external
+  conversational-shell agent (such as a Claude Code-class tool) needs to operate the same tracker;
+  **a skill is needed**: ticket/MR/closing discipline is bundled as `tracker-workflow`.
+  ④ **The UI is a necessity and must be interactive** (the user wants to interact with the system): dispatching work, direct messages,
+  approvals, and forks all originate from the UI, but all are written through the server's API validation —
+  the v0.1 board's "read-only" was only a demo form; from v0.3 the UI is the official operating surface,
+  and the sole writer is still the server.
+- **Decided (2026-11-15, user)**: ③ the primary scenario is set to **mathematical research**. The demo problems and the checker
+  ecosystem are calibrated to research problems: proposition posing, proof attempts, counterexample hunting, symbolic/numeric
+  recomputation of known answers; the checker registry expands toward proof checking (formal-verification interfaces) and symbolic computation.
+  Code problems are demoted to a secondary scenario; accordingly, v0.5's per-worker code workspaces (worktrees)
+  are deprioritized, and conversation forking (different paths through a proof attempt) is prioritized — in mathematics,
+  "try a different approach" is the primary need; "many people editing the same file" is not.
 
-## 8. 与现有文档的关系
+## 8. Relation to existing documents
 
-本计划不改 docs/01–07 的任何规则；它实现的是 docs/02（架构）在
-服务端形态下的放大版。落地一期，CHANGELOG 记一版；
-若某期验收否决，计划书就地改版并保留旧版记录——计划本身也走
-本框架的证据纪律。
+This plan changes none of the rules in docs/01–07; it implements docs/02 (architecture) scaled up
+into server form. As each phase lands, the CHANGELOG records a version;
+if a phase's acceptance is rejected, this plan is revised in place with the old version's record kept — the plan itself also follows
+this framework's evidence discipline.

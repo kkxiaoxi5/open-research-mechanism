@@ -1,57 +1,47 @@
-# 04 · 证据纪律
+# 04 · Evidence Discipline
 
-这套纪律的目的不是让研究变慢，而是让**结论在被引用时知道自己几斤几两**。
+The purpose of this discipline is not to slow research down, but to let **a conclusion know its own weight when it is cited**.
 
-## 证据分层（引用时必须带层）
+## Evidence Tiers (Citations Must Carry Their Tier)
 
-| 层 | 含义 | 引用规则 |
+| Tier | Meaning | Citation rule |
 |---|---|---|
-| 数学 | 在写明的模型类内 proved / 推导出的结论 | 必须带模型类边界；不外推到现实 |
-| 合成 | 在人造数据 / 假市场里验证 | 效应量是设定，不是现实估计 |
-| 实现 | 代码与口径经独立复核、已知答案通过 | 可引用数字，带版本 |
-| 现实统计·探索 | 在已看过方向的数据上得到的描述 | 只能称"描述"，不称确认 |
-| 现实统计·确认 | 在未暴露数据或真前向上按预登记判出 | 可称确认，带功效与口径 |
-| 执行 | 成交、成本、滑点等被真实测过 | 未测过的成本一律标"假设" |
+| Mathematical | Conclusions proved / derived within a stated model class | Must carry the model-class boundary; no extrapolation to reality |
+| Synthetic | Verified in artificial data / a fake market | Effect sizes are settings, not real-world estimates |
+| Implementation | Code and caliber independently reviewed, known-answer tests passed | Numbers may be cited, with version |
+| Real statistics · exploratory | Descriptions obtained on data whose direction has been seen | May only be called "descriptions," not confirmations |
+| Real statistics · confirmatory | Judged by preregistration on unexposed data or true forward records | May be called confirmation, with power and caliber |
+| Execution | Fills, costs, slippage, etc. actually measured | Any cost not measured is labeled "assumed" |
 
-## 五条硬规则
+## Five Hard Rules
 
-1. **事前功效先行**：看均值之前先算能检出的最小效应（MDE ≈ 2.8 × SE，
-   事件扎堆时用聚类后的方差）。MDE 大于预测效应 → 不开工做确认；
-   探索可以继续，但结论强度封顶为"描述"。
-2. **全局试验计数只增不减**：所有试验（含失败、含换会话、含换仓库）记入同一本账，
-   换环境不重置选择历史。报告显著性时给出全局 N 下的口径。
-3. **暴露登记**：每份数据标注暴露状态（未看 / 已看方向 / 已开封），
-   "已开封"的区段不得再用作确认；确认只能来自未暴露区段或真前向。
-4. **已看方向标记**：在已看过方向的数据上做的新设计，一律在产物上标明，
-   其结果不得升级为确认——这条防的是自己，不是防市场。
-5. **收缩校准**：用历史配对（开发段 vs 确认段）估计本项目的收缩系数，
-   事前功效里的预测效应先乘收缩系数再算。报喜不报忧的数字一律按收缩后引用。
+1. **Prior power first**: compute the minimum detectable effect before looking at means (MDE ≈ 2.8 × SE; when events cluster, use the clustered variance). If MDE exceeds the predicted effect → do not start confirmatory work; exploration may continue, but conclusion strength is capped at "description."
+2. **The global trial count only grows**: all trials (including failures, session changes, and repository changes) go into the same ledger; changing environments does not reset the selection history. When reporting significance, give the caliber under the global N.
+3. **Exposure registry**: every dataset is labeled with its exposure state (unseen / direction seen / opened); an "opened" segment may not be used again for confirmation; confirmation can only come from unexposed segments or true forward records.
+4. **Seen-direction marking**: any new design made on data whose direction has been seen must be marked as such on the deliverable, and its results may not be upgraded to confirmation — this rule guards against ourselves, not against the market.
+5. **Shrinkage calibration**: estimate the project's shrinkage factor from historical pairs (development segment vs. confirmation segment); in prior power calculations, multiply the predicted effect by the shrinkage factor first. Numbers reported selectively (good news only) are always cited after shrinkage.
 
-## 已知答案与改坏必失败
+## Known Answers, and Mutation Must Fail
 
-- 新代码先过**已知答案**（人工可算的小例）再上真实数据。
-- 每个关键模块配**改坏必失败**测试：故意改错一处，测试必须变红；
-  变红不了的测试不算测试。跨线改坏账单是有效的同行评审形式。
+- New code first passes **known answers** (small examples computable by hand) before touching real data.
+- Every key module carries **mutation-must-fail** tests: deliberately introduce an error in one place, and the test must turn red; a test that cannot turn red is not a test. Cross-line mutation bills are a valid form of peer review.
 
-## 前向记录
+## Forward Records
 
-- 历史考卷用尽之后，确认的唯一来源是**真前向**：事先登记事件定义、取数时刻、
-  判分规则，按日落地、留时间戳，判分由非作者执行。
-- 前向通道必须有**具名维护者**和落地检查；没有维护者就写"未开"，
-  不许把"计划记录"写成"在记录"。
-- 前向的确认周期以事件数计，不以日历催促；功效算清需要多少事件，写进登记页。
+- Once the historical exam papers are used up, the only source of confirmation is the **true forward**: register the event definition, the data-fetch time, and the scoring rule in advance; land records daily with timestamps; scoring is done by a non-author.
+- A forward channel must have a **named maintainer** and landing checks; with no maintainer, write "not started" — a "planned record" may not be written as "recording in progress."
+- The confirmation cycle of a forward record is counted in events, not prodded by the calendar; how many events the power calculation requires is written into the registry page.
 
-## 成本与执行口径
+## Cost and Execution Caliber
 
-- 回测口径（费率、滑点、成交假设）由项目所有者给定版本，变更要重跑并标注版本。
-- 成本未实测前，结论引用必须带"成本为假设"的标签；
-  对成本敏感的结论（净/毛比接近 1 的）单独列出，等实测口径到了优先复核。
+- The backtest caliber (fees, slippage, fill assumptions) is versioned by the project owner; changes require a rerun and a version label.
+- Before costs are actually measured, cited conclusions must carry the "costs assumed" label; conclusions sensitive to cost (net/gross ratio near 1) are listed separately and re-reviewed first when the measured caliber arrives.
 
-## 引用禁区（写法层面的防自欺）
+## Citation Forbidden Zones (Self-Deception Guards at the Writing Level)
 
-收口与汇报中禁止的句式（参考清单，按项目补充）：
+Sentence patterns forbidden in closing pages and reports (reference list, extend per project):
 
-- 把"没答"写成"已排除"，把"未检出"写成"不存在"。
-- 用探索层的描述数字支撑确认层的结论。
-- 引用未标口径（按笔 / 按簇、毛 / 净、哪段数据）的数字。
-- 把"计划要做"写成"正在做"，把"已读"写成"已接收"。
+- Writing "not answered" as "excluded," or "not detected" as "does not exist."
+- Supporting a confirmatory-tier conclusion with an exploratory-tier descriptive number.
+- Citing numbers without a stated caliber (per-trade / per-cluster, gross / net, which data segment).
+- Writing "planned to do" as "doing," or "read" as "received."

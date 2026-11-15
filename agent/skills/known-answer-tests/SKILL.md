@@ -4,7 +4,7 @@ description: Design checkers and synthetic worlds whose correct answer is known 
 roles: [coordinator, reviewer]
 ---
 
-# Known-answer tests（已知答案测试）
+# Known-answer tests
 
 No leaf is opened without a checker named in advance, and no tool is
 accepted until it passes tests whose answers were fixed before it ran.

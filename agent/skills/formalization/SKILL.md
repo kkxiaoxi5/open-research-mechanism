@@ -4,7 +4,7 @@ description: Turn an informal argument into a machine-checkable form (e.g. a Lea
 roles: [worker, reviewer]
 ---
 
-# Formalization（形式化）
+# Formalization
 
 An argument that a machine has checked cannot be silently weakened by
 retelling, cannot drift when the session ends, and can be re-verified

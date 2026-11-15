@@ -1,59 +1,51 @@
-# 03 · 工作流：从命题到接收
+# 03 · Workflow: From Proposition to Receipt
 
-## 总览
+## Overview
 
 ```
-命题（带事前预测） → 拆小叶 → 认领板认领 → 执行 → 交付块交付
-      → 独立复核（复算 / 盲读回 / 改坏测试） → 接收口登记 → 改变的判断写入每日一页
+Proposition (with prior prediction) → split into small leaves → claimed on the claim board → execution → delivered with a delivery block
+      → independent review (recomputation / blind read-back / mutation test) → registered at the intake → the changed judgment written into the daily page
 ```
 
-## 命题与事前预测
+## Propositions and Prior Predictions
 
-- 每个命题在开工前写清：要回答什么、预测是什么（带数量级）、
-  什么结果算证成、什么结果算证否、功效够不够（见 `04-evidence.md`）。
-- 预测必须**先于**看到结果而提交（用版本历史的时间戳作证）。
-- 功效不足的命题可以探索、查错、记录，但不许写成确认或否定。
+- Before work starts, each proposition states clearly: what it is to answer, what the prediction is (with an order of magnitude), what result counts as proven, what result counts as refuted, and whether the power suffices (see `04-evidence.md`).
+- Predictions must be submitted **before** results are seen (the version history's timestamps serve as witness).
+- A proposition with insufficient power may be explored, debugged, and recorded, but may not be written up as a confirmation or a refutation.
 
-## 拆小叶（并行化的关键）
+## Splitting into Small Leaves (The Key to Parallelization)
 
-- 大题拆成**自带机器判定的小题（小叶）**：每片有明确输入、明确产物、
-  明确的自动判据（已知答案 / 单元测试 / 逐位复现），使不熟悉全题的执行者也能独立完成。
-- 小叶是"加人加速"的载体：派出时记录时刻，交回与验收时刻以通道消息为准——
-  这组时间戳就是扩容效果的度量。
-- 拆分原则：优先拆出**表示与推导类（甲类）**的小叶，而不是把裁判类工具越做越厚。
+- Split a big problem into **small questions with machine-checkable verdicts (small leaves)**: each piece has explicit inputs, an explicit deliverable, and explicit automatic criteria (known answer / unit test / bit-for-bit reproduction), so an executor who does not know the whole problem can still complete it independently.
+- Small leaves are the vehicle of "adding people speeds things up": the dispatch time is recorded, and delivery and acceptance times are taken from channel messages — that set of timestamps is the measure of the scaling effect.
+- Splitting principle: prefer splitting out **Class A (representation & derivation)** small leaves, rather than making Class B judging tools ever thicker.
 
-## 认领板（Claim Board）
+## Claim Board
 
-任务状态的最小结构化载体（参考实现见 `reference/claimboard.py`）：
+The minimal structured carrier of task state (reference implementation: `reference/claimboard.py`):
 
-- **只追加**的事件日志（JSONL），与证据台账共用同一把锁，防并发写坏。
-- 事件类型：`open`（派题）、`claim`（认领）、`deliver`（交付）、
-  `accept`（接受）、`reject`（退回）、`split`（拆小）、`note`（备注）。
-- 派题必填：出处（命题编号）、事前预测、验收方法。
-- 交付必填：结果、**哪个判断因此改变了**。
-- **结局只有三值**：证成 / 证否 / 拆小。试图以"判不出"关单会被拒绝；
-  确实卡住时，必须用不超过三句话说明卡点，并自动生成一张换角度的子题；
-  "只能等"类任务必须挂一张换角度子题，不许空等。
+- An **append-only** event log (JSONL), sharing the same lock as the evidence ledger, so concurrent writes cannot corrupt it.
+- Event types: `open` (assign), `claim` (claim), `deliver` (deliver), `accept` (accept), `reject` (return), `split` (split smaller), `note` (remark).
+- Required when assigning: source (proposition ID), prior prediction, acceptance method.
+- Required when delivering: the result, and **which judgment changed because of it**.
+- **Outcomes have only three values**: proven / refuted / split. Closing with "cannot determine" is rejected; when genuinely stuck, the stuck point must be explained in no more than three sentences, and a different-angle child problem is generated automatically; "can only wait" tasks must carry a different-angle child problem — empty waiting is not allowed.
 
-## 交付块
+## Delivery Block
 
-每份产物开头固定五段（模板见 `templates/delivery-block.md`）：
-任务与规格版本 / 结论 / 证据状态（分层标注） / 产物路径与复现命令 / 剩余缺口与下一接收者。
+Every deliverable opens with a fixed five sections (template: `templates/delivery-block.md`):
+task and specification version / conclusion / evidence status (labeled by tier) / deliverable paths and reproduction commands / remaining gaps and the next receiver.
 
-## 复核
+## Review
 
-- 复核者从作者之外指派；同一复核者同时在审不超过 2 件（防积压伪装成在审）。
-- 三种复核手段按需组合：
-  - **独立复算**：换人（或换模型）从原始输入重算，逐位或在容差内对齐。
-  - **盲读回 / 对题**：只看题目与原话，核产物答的是不是被问的问题（防"牛头不对马嘴"）。
-  - **改坏测试（变异测试）**：故意改坏产物的一处，看测试套件抓不抓得住；
-    抓不住的比例就是测试强度的真实读数。
-- 复核结论分级：接受 / 有条件接受（列明条件） / 退回（列明缺项）。
-  条件未关完前，产物不得被下游当作已确认引用。
+- Reviewers are assigned from outside the authors; one reviewer reviews no more than 2 items at a time (to keep backlog from masquerading as "under review").
+- Three review methods, combined as needed:
+  - **Independent recomputation**: a different person (or a different model) recomputes from the raw inputs, aligning bit-for-bit or within tolerance.
+  - **Blind read-back / question matching**: looking only at the problem and the user's original words, check whether the deliverable answers the question that was actually asked (guarding against "answering a different question than the one posed").
+  - **Mutation test**: deliberately break one place in the deliverable and see whether the test suite catches it; the fraction it misses is the true reading of test strength.
+- Review verdicts are graded: accept / accept with conditions (conditions listed) / return (missing items listed). Until all conditions are closed, the deliverable may not be cited downstream as confirmed.
 
-## 收口
+## Closing Out
 
-- 一道题收口的条件事先写明（例如：主诊断跑完并被接受、更正页被确认、收口页被接受）。
-- 收口页必须如实写：**哪些答了、哪些没答**、前向还要记什么、维护者是谁、重开条件是什么。
-- 收口 ≠ 否定题目。没答的部分写"没答"，不写"已排除"。
-- 收口后该题只保留维护性工作，不再占用主线研究时间，除非重开条件触发。
+- The conditions for closing a problem are written down in advance (for example: the main diagnostic has run and been accepted, the correction page confirmed, the closing page accepted).
+- The closing page must state honestly: **what was answered, what was not answered**, what the forward record still needs to track, who the maintainer is, and what the reopening conditions are.
+- Closing out ≠ refuting the problem. Parts not answered are written as "not answered," not "excluded."
+- After closing, the problem keeps only maintenance work and no longer occupies main-line research time, unless a reopening condition triggers.

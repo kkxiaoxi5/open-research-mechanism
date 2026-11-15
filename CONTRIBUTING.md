@@ -1,19 +1,16 @@
 # Contributing
 
-欢迎改进**机制本身**。本仓库只收机制层面的贡献，不收任何具体领域的内容
-（数据、策略、结论、某个项目的内部文档）。
+Contributions that improve **the mechanism itself** are welcome. This repository accepts only mechanism-level contributions — no content from any specific domain (data, strategies, conclusions, or any project's internal documents).
 
-## 贡献流程（用本框架自己的规矩）
+## Contribution process (using this framework's own rules)
 
-1. **先写事前预测**：开 issue 或 PR 时说明——这个改动要解决哪个失败模式
-   （漂移 / 重复劳动 / 半途而废 / 加人不加速），改完之后哪个行为会变。
-2. **作者不自审**：PR 需要至少一名非作者的复核；涉及规则变更的，需要两名。
-3. **已知答案先行**：`reference/` 下的代码改动必须带测试；
-   新测试要能回答"故意改坏一处，它抓得住吗"。
-4. **失败保留**：被否决的方案不要删，移到 `docs/rejected/` 并写明否决理由与重开条件。
+1. **Write a prior prediction first**: when opening an issue or PR, state which failure mode the change addresses (drift / duplicated labor / abandonment halfway / adding people does not speed things up) and which behavior will change once it is in.
+2. **Authors do not review their own work**: a PR needs at least one non-author reviewer; changes to the rules need two.
+3. **Known answers first**: code changes under `reference/` must come with tests; a new test must be able to answer "if I deliberately break one spot, does it catch it?"
+4. **Keep failures**: do not delete rejected proposals. Move them to `docs/rejected/` with the reason for rejection and the reopening condition.
 
-## 文风
+## Style
 
-- 规则写成可核查的句子：能被第三方指着一条问"这条做到了吗"。
-- 引用提出者原话时逐字引用并给出处；转述必须标注是转述。
-- 文档中文为主，关键术语保留英文对照；README 的英文摘要与中文内容保持同步。
+- Write rules as checkable sentences: a third party should be able to point at one and ask, "was this actually done?"
+- When quoting a proposer's words, quote verbatim and give the source; paraphrases must be marked as paraphrases.
+- Documents, prompts, and the console UI are in English, with Japanese versions alongside; Chinese is kept in the README only.

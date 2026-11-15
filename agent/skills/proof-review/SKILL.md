@@ -4,7 +4,7 @@ description: Review a proof or derivation as a non-author. Use for every review 
 roles: [reviewer]
 ---
 
-# Proof review（证明复核）
+# Proof review
 
 The reviewer is not a proofreader. The reviewer's job is to try to
 make the argument fail, in the cheapest places first, and to close
@@ -12,7 +12,7 @@ the leaf only as proven / refuted / split.
 
 ## Procedure
 
-1. **对题 first**: restate, in your own first line, the exact claim the
+1. **Duiti first**: restate, in your own first line, the exact claim the
    leaf was opened with (copied from the claim card, not from the
    delivery). If the delivery proves a different claim — a weaker one,
    a special case, a converse — that is a refutation of *this* leaf,

@@ -1,13 +1,13 @@
-# 预登记页（看结果之前提交，用版本时间戳作证）
+# Preregistration Page (committed before seeing results; the version timestamp is the proof)
 
 ```text
-命题：一句话
-机制：谁、为什么、在什么约束下，会系统性地做对我方有利的事
-事前预测：方向 + 数量级 + 时间窗
-功效：SE 的来源、聚类口径、MDE；MDE > 预测效应则本页只作探索登记
-判据：证成条件 / 证否条件（都是事先写死的数值或规则）
-数据与暴露：用哪段数据；该段的暴露状态（未看 / 已看方向 / 已开封）
-试验计数：本试验登记后全局 N 的增量
-成本口径：版本；未实测的标注"假设"
-重开条件：若证否，什么新信息出现时可以重开
+Proposition: one sentence
+Mechanism: who, why, and under what constraints, will systematically do something favorable to us
+Prior prediction: direction + order of magnitude + time window
+Power: source of the SE, clustering convention, MDE; if MDE > predicted effect, this page counts only as an exploratory registration
+Criteria: proven condition / refuted condition (both are numbers or rules fixed in advance)
+Data and exposure: which segment of data; that segment's exposure state (unseen / direction seen / unsealed)
+Trial count: the increment to the global N after this trial is registered
+Cost convention: version; anything not actually measured is marked "assumed"
+Reopening condition: if refuted, what new information would allow reopening
 ```

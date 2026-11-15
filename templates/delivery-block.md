@@ -1,14 +1,14 @@
-# 交付块（每份产物开头固定五段）
+# Delivery Block (fixed five sections at the head of every deliverable)
 
 ```text
-任务：<卡号>；规格：<版本>（基于什么）
-结论：一到三句，只写这一份产物能支撑的结论
-证据状态：数学 / 合成 / 实现 / 现实统计（探索|确认） / 执行 —— 分别标注本产物的层级
-产物：路径 + 提交号；复现命令（一行可跑）
-剩余缺口：还没答的部分，逐条写"没答"，不写"已排除"
-下一接收者：<名字>；请做：<具体动作>
+Task: <card ID>; Spec: <version> (based on what)
+Conclusion: one to three sentences — only the conclusions this deliverable can support
+Evidence status: mathematics / synthetic / implementation / real-world statistics (exploratory|confirmatory) / execution — mark which level this deliverable sits at
+Deliverable: path + commit hash; reproduction command (runnable in one line)
+Remaining gaps: parts not yet answered, each written as "not answered" — never "ruled out"
+Next receiver: <name>; please do: <specific action>
 ```
 
-填写说明：
-- "结论"与事前预测对读：预测错了也照实写，预测命中率是资产不是面子。
-- 证据状态决定这份产物能被谁引用到什么强度（见 docs/04-evidence.md）。
+How to fill it in:
+- Read the "Conclusion" against the prior prediction: if the prediction was wrong, write it as it is. Prediction hit rate is an asset, not a matter of face.
+- The evidence status determines who may cite this deliverable and at what strength (see docs/04-evidence.md).

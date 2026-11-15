@@ -1,54 +1,48 @@
-# 02 · 架构：角色、会话与信息流
+# 02 · Architecture: Roles, Sessions, and Information Flow
 
-## 一会话一名字
+## One Session, One Name
 
-- 每个长期会话 = 一个岗位 = 一个唯一名字。名字即收件人：派活、留言、交付都按名字点名。
-- 共用名字会抢收件箱、抢游标、重复回复——这是实测过的故障模式，不是洁癖。
-- 新会话开工前，先在名册登记一行：名字 / 运行环境 / 角色 / 找它干什么 / 状态。
-- 临时子代理不算岗位：署名带来源（如 `主会话·子代理`），不进名册、不接派工。
+- Each long-lived session = one post = one unique name. The name is the addressee: assignments, messages, and deliveries all name names.
+- Shared names fight over inboxes, cursors, and duplicate replies — this is a measured failure mode, not fussiness.
+- Before a new session starts work, register one line in the roster: name / runtime environment / role / what to ask it for / status.
+- Temporary sub-agents are not posts: they sign with their origin (e.g. `main session · sub-agent`), stay out of the roster, and take no assignments.
 
-## 角色参考表
+## Role Reference Table
 
-| 角色 | 职责 | 不做什么 |
+| Role | Responsibilities | Does not do |
 |---|---|---|
-| 总负责人（接收口） | 派工、登记接收、维护唯一的任务状态表、调度资源（额度/算力） | 不兼任具体研究组的组长；不审批探索的每一步 |
-| 研究负责人（每条线一名） | 本线题目的规格、事前预测、收口页 | 不复核自己的产物 |
-| 执行者 / 解题人 | 按规格跑数、回放、计数、找数据 | 不改规格；发现规格有问题回报，不自行改口径 |
-| 工具维护 | 造并维护公共工具（检查器、台账、调度） | 不用未复核的工具当裁判 |
-| 审核（至少两名，互相独立） | 盲读回对题、代码审计、独立复算、改坏测试 | 不看作者结论先行下判；不接自己审过的活的返工 |
-| 数据 / 通道维护 | 数据落地、完整性闸门、暴露登记 | 不碰研究判断 |
-| 统筹 | 原话登记、进度页、对外汇报 | 不派研究活 |
-| 外部审查（可选） | 只读审查、提候选改进 | 不派工、不改文件；其产物一律标"候选，未验收" |
+| Lead (intake) | Assigns work, registers receipt, maintains the single task-status table, schedules resources (quota / compute) | Does not double as leader of a specific research line; does not approve every step of exploration |
+| Research lead (one per line) | The line's problem specifications, prior predictions, closing pages | Does not review their own output |
+| Executor / solver | Runs computations, replays, counts, finds data, per specification | Does not change the specification; reports specification problems instead of quietly changing the caliber |
+| Tool maintenance | Builds and maintains shared tools (checkers, ledgers, scheduling) | Does not use unreviewed tools as judges |
+| Reviewers (at least two, mutually independent) | Blind read-back against the question, code audit, independent recomputation, mutation tests | Does not judge after reading the author's conclusion first; does not take rework on work they reviewed |
+| Data / channel maintenance | Data landing, integrity gates, exposure registry | Does not touch research judgments |
+| Coordinator | Registers the user's original words, progress pages, external reporting | Does not assign research work |
+| External review (optional) | Read-only review, proposes candidate improvements | Does not assign work or modify files; its output is always labeled "candidate, not accepted" |
 
-## 单一接收口
+## Single Intake
 
-- 全项目只有一张任务状态表，只有一个写入方（总负责人）。
-- 交付流程：产物开头写交付块 → 在消息通道上通知接收口 → 接收口核对后在状态表登记。
-- "已读"≠"已接收"；"已接收"≠"结论为正"。三种状态分开记。
-- 接收口是汇聚点，不是审批点：探索层面的试错不需要逐步批准；
-  只有**宣称发现、升级证据、动用资源**这三类动作过门槛。
+- The whole project has exactly one task-status table and exactly one writer (the lead).
+- Delivery flow: the deliverable opens with a delivery block → notify the intake over the message channel → the intake verifies and registers it in the status table.
+- "Read" ≠ "received"; "received" ≠ "conclusion is positive." The three states are recorded separately.
+- The intake is a convergence point, not an approval point: trial and error at the exploration level needs no step-by-step approval; only three kinds of action pass a gate — **claiming a discovery, upgrading evidence, consuming resources**.
 
-## 双线对照（可选，强烈推荐）
+## Two-Line Cross-Check (Optional, Strongly Recommended)
 
-- 同一个仓库、同一本账、两条自主研究线（A 线 / B 线），探索权限相同。
-- 比较两线时必须**同题、同资源约束、同验收标准**；拿一线修旧问题、一线做新题比强弱，无效。
-- 跨线互查是特性不是事故：一线给另一线的工具做改坏测试、挑暴露登记错误，
-  由第三方独立重现后才算数。
-- 两线访问同一批数据时，查询与选择历史**合并计算**，不许各记各的账。
+- Same repository, same ledger, two autonomous research lines (Line A / Line B) with equal exploration rights.
+- Comparing the two lines requires **same problem, same resource constraints, same acceptance standards**; comparing strength with one line fixing old problems and the other doing new problems is invalid.
+- Cross-line checking is a feature, not an incident: one line runs mutation tests on the other's tools and hunts for exposure-registry errors; it counts only after a third party independently reproduces it.
+- When both lines access the same batch of data, their query and selection histories are **counted together**; keeping separate books is not allowed.
 
-## 信息流
+## Information Flow
 
-- **原话真源**：提出者的原话只有一个登记处，只追加、带编号；其他文档引用编号，不复制转述。
-- **任务状态真源**：只有状态表一处；聊天里的进度说法不算数，对不上时以表为准并回查。
-- **消息通道**：日常沟通走轻量留言/桥；例外（安全、决策、争议）才升级为正式记录。
-- **每日一页**：每条线每天一页，首段对根本要求，正文只写"今天改变了哪个判断、卡在哪、下一步"。
-- **推送纪律**：每轮收工把成果推到远端备份；本地 HEAD 与远端不一致视为备份未完成。
-  （没有这条，外部观察者看到的永远是昨天的世界。）
+- **Source of truth for the user's original words**: exactly one registry for the proposer's original words, append-only, with ID numbers; other documents cite the numbers and do not copy paraphrases.
+- **Source of truth for task status**: the status table only; progress claims in chat do not count, and on mismatch the table prevails and the discrepancy is traced back.
+- **Message channel**: daily communication goes through lightweight messages / a bridge; only exceptions (safety, decisions, disputes) are escalated to formal records.
+- **Daily page**: one page per line per day; the first section reconciles against the fundamental requirements, and the body writes only "which judgment changed today, where it is stuck, what is next."
+- **Push discipline**: at the end of each round, push results to the remote backup; a mismatch between local HEAD and the remote counts as backup incomplete. (Without this, outside observers forever see yesterday's world.)
 
-## 额度与调度
+## Quota and Scheduling
 
-- 模型额度、算力、审核人力都是**可调度资源**，写进状态表统一排：
-  某类额度冻结时，把活路由给不依赖它的角色，而不是全线停摆。
-- 总负责人可采用**定时叫醒**制：每次唤醒先跑只读检查器（有没有漏接的交付、
-  有没有超时的认领），再读收件、核提交、更新状态表。没有自动驱动时，会话停了就停——
-  所以检查器要能一眼看出"谁卡住了、卡了多久"。
+- Model quota, compute, and reviewer labor are all **schedulable resources**, written into the status table and arranged centrally: when one kind of quota is frozen, route work to roles that do not depend on it instead of halting the whole line.
+- The lead may run on **timed wake-ups**: each wake-up first runs a read-only checker (any missed deliveries? any timed-out claims?), then reads the inbox, verifies commits, and updates the status table. Without an automatic driver, a stopped session stays stopped — so the checker must show at a glance "who is stuck, and for how long."

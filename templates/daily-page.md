@@ -1,16 +1,16 @@
-# 每日一页（每条线每天一页）
+# Daily Page (one page per line per day)
 
-## 首段：对根本要求（三行）
+## Opening section: against the fundamental requirements (three lines)
 
-| 根本要求 | 今天的对账 |
+| Fundamental requirement | Today's reconciliation |
 |---|---|
-| 造新东西 | 本日新造的工具 / 解释 / 判断，没有写"无"并说明 |
-| 先规则、后行动 | 本日所有结论是否都有事前预测与判据 |
-| 不半途而废 | 本日关单是否只有三值结局；拆出的子题编号 |
+| Create new things | Tools / explanations / judgments newly created today; if none, write "none" and explain |
+| Rules before action | Whether every conclusion today has a prior prediction and criteria |
+| Never abandon halfway | Whether today's closures are all three-valued outcomes; IDs of sub-tasks split out |
 
-## 正文
+## Body
 
-- 今天**改变了哪个判断**（没有就写没有，不写工作量清单）
-- 卡点：卡在哪、属于测量 / 成本 / 机制 / 样本哪一类
-- 下一步：下一张卡的编号与责任人
-- 需要所有者决定的事项：逐条列出，不埋在正文里
+- **Which judgment changed** today (if none, write none — do not write a workload list)
+- Blockers: where it is stuck, and which class it belongs to — measurement / cost / mechanism / sample
+- Next step: the ID of the next card and who owns it
+- Matters requiring the owner's decision: list them one by one; do not bury them in the body

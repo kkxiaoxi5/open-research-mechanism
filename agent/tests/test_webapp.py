@@ -40,7 +40,8 @@ class WebApp(unittest.TestCase):
         with urllib.request.urlopen(
                 f"http://127.0.0.1:{self.port}/") as resp:
             html = resp.read().decode()
-        self.assertIn("控制台", html)
+        self.assertIn("mechanism-agent console", html)
+        self.assertIn("mech-lang", html)  # EN/JA UI switch
         _, state = self.call("/api/state")
         self.assertEqual(state["counts"]["decisions"], 1)
         self.assertEqual(len(state["agents"]), 4)

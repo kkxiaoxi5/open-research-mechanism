@@ -4,7 +4,7 @@ description: Break a hard problem into small leaves that a checker can grade. Us
 roles: [coordinator, worker]
 ---
 
-# Leaf splitting（拆叶）
+# Leaf splitting (chaiye)
 
 A leaf is the smallest unit of work whose result can be graded by a
 checker that does not depend on the worker's own reasoning. If you

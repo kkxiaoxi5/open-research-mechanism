@@ -1,13 +1,13 @@
-# 认领卡（派题时用）
+# Claim Card (used when dispatching a task)
 
 ```text
-卡号：<线别>-<序号>（如 A-012 / C-003）
-出处：命题编号 / 原话编号 / 上级卡号
-题目：一句话说清要回答什么
-事前预测：带数量级的预测；写清"若结果为 X 则改变哪个判断"
-输入版本：数据 / 规格的版本或提交号（取不到写"未定"并说明）
-验收方法：已知答案 / 逐位复现 / 机器判定脚本（至少一种，写明）
-复核者：非作者，指名
-算力与额度：预计占用；与其他线的共享资源先在通道里说一声
-卡住时：三句话写卡点 + 自动生成一张换角度子题（不许空等）
+Card ID: <line>-<number> (e.g. A-012 / C-003)
+Source: proposition ID / verbatim-quote ID / parent card ID
+Task: one sentence stating exactly what is to be answered
+Prior prediction: a prediction with an order of magnitude; state "if the result is X, which judgment changes"
+Input version: version or commit hash of the data / spec (if unavailable, write "TBD" and explain)
+Acceptance method: known-answer / bit-for-bit reproduction / machine-grading script (at least one; specify which)
+Reviewer: a non-author, named
+Compute and quota: expected usage; if a resource is shared with other lines, say so in the channel first
+When stuck: write the blocker in three sentences + auto-generate a sub-task from a different angle (never wait idle)
 ```

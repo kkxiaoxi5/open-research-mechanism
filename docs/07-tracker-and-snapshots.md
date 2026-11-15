@@ -1,67 +1,45 @@
-# 07 · 票据与快照：人类规模的工作进 tracker，状态以快照回仓库
+# 07 · Tickets and Snapshots: Human-Scale Work Goes into a Tracker, State Returns to the Repository as Snapshots
 
-多会话协作跑起来之后，任务、质问、决定这类**人类规模**的工作
-（几十条量级）很快会把 markdown 表格压垮：状态靠手抄、关单靠人想起来、
-"哪些在等谁"要通读全文才知道。本章的方案是：**这类工作迁入一个
-本地部署的开源 issue tracker；tracker 的状态定期导出为快照文件回仓库。**
-机器规模的工作（批量生成的微任务）不进 tracker，留在附录式的
-追加账本里（见 `03-workflow.md` 的认领板）。
+Once multi-session collaboration is running, **human-scale** work — tasks, questions, decisions, on the order of dozens of items — quickly crushes markdown tables: state is copied by hand, closing depends on someone remembering, and "what is waiting on whom" requires reading the whole text to know. This chapter's solution: **move this kind of work into a locally deployed open-source issue tracker; the tracker's state is periodically exported as snapshot files back into the repository.** Machine-scale work (batch-generated micro-tasks) does not go into the tracker; it stays in the appendix-style append-only ledger (see the claim board in `03-workflow.md`).
 
-## 为什么用现成的 tracker，而不是继续手造表格
+## Why Use a Ready-Made Tracker Instead of Hand-Rolling Tables
 
-- 表格没有字段约束：负责人、期限、下一步触发可以整栏空着存进去，
-  漏和忘就是这样发生的。tracker 的必填字段和状态机在**写入时**拦截。
-- 表格没有通知：状态变更靠别人恰好读到。tracker 的指派、关注、
-  到期提醒把"漏接"从运气问题变成系统问题。
-- 表格没有查询："未答的问题""等某人决定的事项""超时的活"
-  应该是保存好的查询，一键出表，而不是每次靠人通读归纳。
-- 手造表格的本质是在低质量地重写 tracker——它二十年来解决的就是
-  漏、忘、无历史这三件事。
+- Tables have no field constraints: owner, deadline, and next trigger can be saved with whole columns empty — that is exactly how misses and forgettings happen. A tracker's required fields and state machine intercept **at write time**.
+- Tables have no notifications: a state change depends on someone happening to read it. A tracker's assignments, watches, and due reminders turn "missed receipt" from a matter of luck into a property of the system.
+- Tables have no queries: "unanswered questions," "items awaiting someone's decision," "overdue work" should be saved queries that produce a table in one click, not something a person re-derives by reading everything each time.
+- A hand-rolled table is, in essence, a low-quality rewrite of a tracker — which has spent twenty years solving exactly these three things: misses, forgettings, and no history.
 
-## 为什么必须配快照（本章的关键）
+## Why Snapshots Are Mandatory (The Key Point of This Chapter)
 
-tracker 有一个真实代价：**状态离开了仓库**。对"会话开机先读文件、
-靠提交历史备份"的系统，这会咬人：
+A tracker has a real cost: **state leaves the repository**. For a system built on "sessions boot by reading files and back up via commit history," this bites:
 
-- 新会话开机读不到最新状态，又退回靠转述；
-- 仓库备份（远端 HEAD 核对）覆盖不到 tracker 里的状态；
-- tracker 一旦停机或被弃用，历史状态整体丢失。
+- A new session cannot read the latest state at boot and falls back to relayed paraphrase;
+- Repository backups (remote HEAD verification) do not cover the state inside the tracker;
+- If the tracker ever stops or is abandoned, its historical state is lost wholesale.
 
-解法不是拒绝 tracker，而是给它加一条回流管：
+The answer is not to reject the tracker but to give it a return pipe:
 
-- 用**只连本地的 API 客户端**操作 tracker（开票、评论、关票、导出），
-  客户端本身进仓库、过测试；
-- 定期把 tracker 的全量状态**导出为快照文件提交回仓库**
-  （如 JSON/CSV + 一份人读的摘要），快照即备份、即开机读物：
-  会话开机读快照，深度操作走 API；
-- tracker 选型优先**单文件/轻量本地部署**（如 Gitea 一类把代码托管
-  与票据合一的开源工具；工作流深度要求更高时用 Redmine 一类），
-  保证整套东西能在一台机器上重建。
+- Operate the tracker through an **API client that connects only locally** (open tickets, comment, close tickets, export); the client itself lives in the repository and is tested;
+- Periodically **export the tracker's full state as snapshot files and commit them back into the repository** (e.g. JSON/CSV plus a human-readable summary); the snapshot is both the backup and the boot reading: sessions read the snapshot at boot, and deep operations go through the API;
+- Prefer tracker options that are **single-file / lightweight local deployments** (such as Gitea-class open-source tools that combine code hosting and tickets; when deeper workflow is required, Redmine-class tools), so the whole setup can be rebuilt on one machine.
 
-## 分层：什么进 tracker，什么不进
+## Layering: What Goes into the Tracker, What Does Not
 
-| 层 | 量级 | 载体 |
+| Layer | Scale | Carrier |
 |---|---|---|
-| 机器规模：批量微任务、自动判分、父子派生 | 百～千 | 追加账本（认领板），程序管 |
-| 人类规模：任务、质问、决定、事故 | 十～百 | tracker，字段与工作流管 |
-| 不可变真源：原始指示、文档、证据 | — | git 仓库；票里只挂编号与链接 |
+| Machine scale: batch micro-tasks, automatic scoring, parent–child derivation | hundreds–thousands | Append-only ledger (claim board), managed by programs |
+| Human scale: tasks, questions, decisions, incidents | tens–hundreds | Tracker, managed by fields and workflow |
+| Immutable sources of truth: original instructions, documents, evidence | — | The git repository; tickets carry only ID numbers and links |
 
-把机器规模塞进 tracker 会先把 tracker 压垮（噪音、批量操作、
-自定义状态机都不是为它设计的）；把人类规模留在表格里，
-则漏忘无解。分层是两个方向的失败都躲开。
+Stuffing machine scale into a tracker crushes the tracker first (noise, batch operations, and custom state machines are not what it was designed for); leaving human scale in tables leaves misses and forgettings unsolvable. Layering avoids both directions of failure.
 
-## 一个必须写进工作流的教训：关单单点
+## A Lesson That Must Be Written into the Workflow: Single-Point Closing
 
-tracker 部署失败最常见的方式不是没人开票，而是**关票权集中在一个人**：
-这个人一停摆，未关闭的票堆积如山，整个系统随之被弃用。
-所以工作流里至少要有两条：
+The most common way a tracker deployment fails is not that nobody opens tickets, but that **the right to close tickets is concentrated in one person**: once that person stalls, unclosed tickets pile up and the whole system is abandoned. So the workflow needs at least two rules:
 
-- 关票权限不单点（复核者与协调者都可关，作者仍不可自关）；
-- 超时未动的票自动升级到每日一页/日报，而不是静静躺着。
+- Closing rights are not single-point (reviewers and the coordinator can both close; authors still may not close their own);
+- Tickets untouched past a timeout are automatically escalated into the daily page / daily report, instead of lying there quietly.
 
-## 试点纪律
+## Pilot Discipline
 
-上线不等于采用。约定一个近期的**对账日**：逐票核对 tracker 与
-实际工作是否一致、每日一页是否已开始由查询/快照生成、
-关票是否仍单点。对账不过，修或退回表格，并把原因写进变更记录——
-工具和结论一样，要经得起"用了之后说不"。
+Deployment is not adoption. Agree on a near-term **reconciliation day**: check ticket by ticket whether the tracker matches the actual work, whether the daily page has begun to be generated from queries / snapshots, and whether closing is still single-point. If the reconciliation fails, fix it or roll back to tables, and write the reason into the change log — tools, like conclusions, must withstand being said no to after use.

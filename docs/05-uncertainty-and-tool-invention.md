@@ -1,56 +1,37 @@
-# 05 · 研究不确定性：发明新数学工具的方法
+# 05 · Research Uncertainty: A Method for Inventing New Mathematical Tools
 
-本框架的出发点是一个判断：**对真正不确定的对象，经典概率论的机器常常不对题。**
-未来只实现一次；"概率"本身是对世界的一个假说，不是世界附带的属性。
-当样本天然稀少、机制会变、观察者就在系统之内时，把历史频率当作未来的
-概率分布，是把假说误当事实。本章写的是：面对这类问题，怎么系统性地
-**发明**新的数学工具，而不是套用现成的。
+This framework starts from a judgment: **for genuinely uncertain objects, the machinery of classical probability theory is often not fitted to the problem.** The future is realized only once; "probability" itself is a hypothesis about the world, not an attribute the world comes with. When samples are naturally scarce, mechanisms change, and the observer sits inside the system, treating historical frequencies as the probability distribution of the future mistakes a hypothesis for a fact. This chapter is about how, facing such problems, to **invent** new mathematical tools systematically instead of applying ready-made ones.
 
-## 先证明边界，再找方法
+## Prove the Boundary First, Then Look for a Method
 
-发明工具的第一步不是构造，而是划界：
+The first step in inventing a tool is not construction but delimitation:
 
-1. **可识别性先行**：先问"用现有信息，这个问题最多能回答到什么程度"。
-   在写明的模型类内构造观测等价的反例：如果两个机制产生完全相同的
-   可观测分布，它们就不可区分——这不是失败，这是省下几个月错路的定理。
-2. **缺的是什么信息，要点名**：不可识别时，明确写出"缺哪一类信息才能分开"
-   （例如：行为主体的约束状态、机制切换的时点）。缺口点名之后，
-   它自动成为一张数据卡或一张新命题卡。
-3. **负结果是资产**：证出的"分不开"与证出的"分得开"同等记账、同等引用；
-   只许引用时带模型类边界。
+1. **Identifiability first**: first ask "with the information at hand, how far can this problem be answered at most?" Within a stated model class, construct observationally equivalent counterexamples: if two mechanisms produce exactly the same observable distribution, they are indistinguishable — this is not a failure; it is a theorem that saves months of wrong roads.
+2. **Name the missing information**: when something is not identifiable, write explicitly "which class of information is missing to separate them" (for example: the constraint states of the acting agents, the timing of a mechanism switch). Once a gap is named, it automatically becomes a data card or a new proposition card.
+3. **Negative results are assets**: a proved "cannot be separated" and a proved "can be separated" are booked and cited equally; citations must carry the model-class boundary.
 
-## 工具发明流水线
+## The Tool-Invention Pipeline
 
 ```
-真实问题中的卡点
-  → 最小合成世界（假市场 / 假数据生成器：机制写死、答案已知）
-  → 在合成世界里推导：能证明什么、哪里失效（先手写论证，再形式化）
-  → 已知答案测试 + 改坏必失败测试
-  → 回到真题：改变了一个判断，才算工具成立
-  → 登记工具卡（原理 / 边界 / 失效情形）
+A stuck point in a real problem
+  → a minimal synthetic world (fake market / fake data generator: mechanism hard-coded, answers known)
+  → derive inside the synthetic world: what can be proved, where it fails (hand-written argument first, formalization after)
+  → known-answer tests + mutation-must-fail tests
+  → back to the real problem: only when a judgment changed does the tool count as established
+  → register a tool card (principle / boundary / failure conditions)
 ```
 
-- **合成世界是实验室，不是考场**：在合成世界里得到的效应量是设定值，
-  永远不许当作现实估计引用（见 `04-evidence.md` 的证据分层）。
-- **形式化是放大器**：把论证写成机器可检的形式（定理证明器、性质测试），
-  使一个会话的洞察能被其他会话在几分钟内复核——这是"堆人数能加速"
-  在数学线上的实现方式：一人提出，众人并行验证与找反例。
-- **规模化搜索**：候选工具 / 候选命题先批量生成、再用反例淘汰；
-  淘汰记录完整保留（选过什么、为什么死），与全局试验计数合并记账。
+- **A synthetic world is a laboratory, not an exam hall**: effect sizes obtained in a synthetic world are settings, and may never be cited as real-world estimates (see the evidence tiers in `04-evidence.md`).
+- **Formalization is an amplifier**: writing an argument in machine-checkable form (theorem prover, property tests) lets one session's insight be reviewed by other sessions within minutes — this is how "adding people speeds things up" is realized on the mathematics line: one proposes, many verify and hunt counterexamples in parallel.
+- **Search at scale**: candidate tools / candidate propositions are first generated in bulk, then eliminated by counterexamples; the elimination record is kept in full (what was selected, why it died) and booked together with the global trial count.
 
-## 研究不确定性的几条工作假设（可按项目替换）
+## Working Assumptions about Research Uncertainty (Replaceable per Project)
 
-- 把"不确定性"本身当研究对象：分布会漂移时，先研究**漂移的结构**
-  （什么变得快、什么变得慢、什么有记忆），而不是假装分布固定。
-- 少样本大事件用先验与机制推理定权，不用频率硬凑显著性；
-  结论以"改变哪个决策、以多大仓位"表达，而不是以 p 值表达。
-- 预测的质量用**记分规则**量（见工具线乙类），账户表现、统计证据、
-  预测质量三者分开报告，禁止用单一"倍数"互相冒充。
-- 每个工具必须写**失效条件**：什么观测出现时，这个工具说的话作废。
-  没有失效条件的工具不许进工具池。
+- Treat "uncertainty" itself as the research object: when distributions drift, first study **the structure of the drift** (what changes fast, what changes slowly, what has memory), instead of pretending the distribution is fixed.
+- For scarce-sample big events, set weights by priors and mechanistic reasoning rather than forcing significance out of frequencies; conclusions are expressed as "which decision changes, and at what position size," not as p-values.
+- The quality of predictions is measured by **scoring rules** (see Class B of the tools line); account performance, statistical evidence, and prediction quality are reported separately, and none may impersonate another through a single "multiple."
+- Every tool must state its **failure conditions**: on what observation does what this tool says become void. A tool without failure conditions may not enter the tool pool.
 
-## 与证据纪律的关系
+## Relation to the Evidence Discipline
 
-本章管"怎么造"，`04-evidence.md` 管"造出来的东西算几分"。
-发明阶段鼓励连续探索、取消"只跑一次"；但探索结果不写成确认，
-选择与失败全部登记——自由在探索层，纪律在宣称层。
+This chapter governs "how to build"; `04-evidence.md` governs "how much what is built counts for." The invention stage encourages continuous exploration and drops "run only once"; but exploration results are not written up as confirmations, and all selections and failures are registered — freedom at the exploration tier, discipline at the claiming tier.

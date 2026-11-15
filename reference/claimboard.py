@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""认领板（Claim Board）最小参考实现。
+"""Claim Board — a minimal reference implementation.
 
-设计要点（对应 docs/03-workflow.md）：
-- 只追加的 JSONL 事件日志；写入用文件锁串行化，避免并发写坏。
-- 结局只有三值：proven（证成）/ refuted（证否）/ split（拆小）。
-  试图以其他结局关单（例如 "unknown" / "判不出"）会被拒绝。
-- 以 split 关单时必须给出子题；以任何方式标记卡住时必须写卡点并生成子题。
+Design points (corresponding to docs/03-workflow.md):
+- An append-only JSONL event log; writes are serialized with a file lock so concurrent writes cannot corrupt it.
+- Outcomes are exactly three-valued: proven / refuted / split.
+  Closing a card with any other outcome (e.g. "unknown" / "cannot decide") is rejected.
+- Closing with split requires giving the child tasks; marking a card as stuck in any way requires writing the blocker and spawning a child task.
 
-用法：
+Usage:
     python claimboard.py --board board.jsonl open  --id A-001 --by lead \
-        --title "……" --prediction "……" --acceptance "已知答案逐位复现"
+        --title "..." --prediction "..." --acceptance "known-answer bit-for-bit reproduction"
     python claimboard.py --board board.jsonl claim --id A-001 --by worker-1
     python claimboard.py --board board.jsonl deliver --id A-001 --by worker-1 \
-        --result "……" --changed "改变了判断：……"
+        --result "..." --changed "judgment changed: ..."
     python claimboard.py --board board.jsonl close --id A-001 --by reviewer \
         --outcome split --children A-002 A-003
     python claimboard.py --board board.jsonl table
@@ -35,7 +35,7 @@ def _lock_path(board: str) -> str:
 
 
 def _acquire_lock(board: str):
-    """简易自旋文件锁（跨平台够用；生产环境可换成 OS 级文件锁）。"""
+    """A simple spin file lock (good enough cross-platform; production use can swap in an OS-level file lock)."""
     import time
 
     lock = _lock_path(board)
@@ -86,7 +86,7 @@ def read_events(board: str) -> list[dict]:
 
 
 def fold_state(events: list[dict]) -> dict[str, dict]:
-    """把事件流折叠成每张卡的当前状态。"""
+    """Fold the event stream into each card's current state."""
     cards: dict[str, dict] = {}
     for e in events:
         cid = e.get("id")
@@ -127,9 +127,9 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--id", required=True)
     sp.add_argument("--by", required=True)
     sp.add_argument("--title", required=True)
-    sp.add_argument("--prediction", required=True, help="事前预测（必填）")
-    sp.add_argument("--acceptance", required=True, help="验收方法（必填）")
-    sp.add_argument("--source", default="", help="出处：命题/原话/上级卡号")
+    sp.add_argument("--prediction", required=True, help="pre-registered prediction (required)")
+    sp.add_argument("--acceptance", required=True, help="acceptance method (required)")
+    sp.add_argument("--source", default="", help="source: proposition / original words / parent card id")
 
     for name in ("claim", "accept", "reject"):
         sp = sub.add_parser(name)
@@ -140,17 +140,17 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--id", required=True)
     sp.add_argument("--by", required=True)
     sp.add_argument("--result", required=True)
-    sp.add_argument("--changed", required=True, help="哪个判断因此改变了（必填）")
+    sp.add_argument("--changed", required=True, help="which judgment this changed (required)")
 
     sp = sub.add_parser("close")
     sp.add_argument("--id", required=True)
     sp.add_argument("--by", required=True)
     sp.add_argument("--outcome", required=True,
-                    help="只能是 proven / refuted / split")
+                    help="must be proven / refuted / split")
     sp.add_argument("--children", nargs="*", default=[],
-                    help="outcome=split 时必填：拆出的子题卡号")
+                    help="required when outcome=split: the child card ids")
     sp.add_argument("--stuck", default="",
-                    help="卡点（不超过三句）；填写时必须同时给出 --children")
+                    help="stuck point (max three sentences); when given, --children is required too")
 
     sp = sub.add_parser("note")
     sp.add_argument("--id", required=True)

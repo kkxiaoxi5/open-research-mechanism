@@ -269,9 +269,9 @@ class App:
                     + (f" → {ev['outcome']}" if ev.get("outcome") else ""))
         coord = self.chat.post(
             "all", "coordinator",
-            "叫醒一轮完成：" + ("、".join(
+            "Wake-up round complete: " + (", ".join(
                 f"{k} ×{len(v)}" for k, v in sorted(did.items()))
-                if did else "本轮无新交付") + "。",
+                if did else "no new deliveries this round") + ".",
             kind="summary")
         _ = coord
         for a in self.agents.all():
@@ -291,21 +291,21 @@ class App:
                     f"user briefly and concretely.", convo)
             else:
                 mine = did.get(a["name"], [])
-                reply = ("（演示后端）收到。本轮我的工作：" +
-                         ("；".join(mine) if mine else "暂无新交付") +
-                         "。接真模型后我会直接答复内容。")
+                reply = ("(demo backend) Received. My work this round: " +
+                         ("; ".join(mine) if mine else "no new deliveries") +
+                         ". Connect a real model and I will answer directly.")
             self.chat.post(a["name"], a["name"], reply,
                            parent_id=pending[-1]["id"], kind="reply")
 
 PAGE = r"""<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>mechanism-agent 控制台</title>
+<title>mechanism-agent console</title>
 <style>
 :root{--bg:#0e0e10;--panel:#16171a;--panel2:#1c1d21;--line:#2a2b31;
 --ink:#e6e6e3;--dim:#8a8f98;--faint:#5c6068;--accent:#d97757;
 --green:#4caf7d;--red:#e5534b;--amber:#d29922;--blue:#58a6ff;--purple:#b083f0;
---mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,"Microsoft YaHei",monospace}
+--mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,"Microsoft YaHei","Hiragino Sans",monospace}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);display:grid;
@@ -411,7 +411,9 @@ footer .acc{color:var(--accent)}
 footer .warn{color:var(--amber)}
 footer .meter{width:110px;height:5px;background:#26272c;border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
 footer .meter i{display:block;height:100%;background:var(--green)}
-footer .right{margin-left:auto;display:flex;gap:16px}
+footer .right{margin-left:auto;display:flex;gap:16px;align-items:center}
+footer .lang button{background:none;border:0;color:var(--faint);padding:0 3px;font-size:11px;font-weight:400}
+footer .lang button.on{color:var(--accent)}
 #toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
 background:#232428;color:var(--ink);border:1px solid var(--line);padding:7px 14px;
 border-radius:8px;font-size:12.5px;display:none;z-index:9}
@@ -420,82 +422,143 @@ svg text{font-size:10px;fill:var(--dim)}
 </style></head><body>
 <aside>
   <h1><span class="dot">●</span> mechanism-agent</h1>
-  <div class="sub">研究机制控制台 · 台账是唯一真相<span id="ver"></span></div>
+  <div class="sub"><span data-t="subtitle"></span><span id="ver"></span></div>
   <div class="sect">Actions</div>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <button onclick="runCycle()">▶ 叫醒一轮</button>
-    <button class="ghost" onclick="showTaskForm('leaf')">＋ 叶子</button>
-    <button class="ghost" onclick="showTaskForm('ticket')">＋ 票据</button>
+    <button onclick="runCycle()" data-t="wake"></button>
+    <button class="ghost" onclick="showTaskForm('leaf')" data-t="add_leaf"></button>
+    <button class="ghost" onclick="showTaskForm('ticket')" data-t="add_ticket"></button>
   </div>
   <div class="stabs" id="stabs"></div>
   <div id="side-tasks"></div>
   <div id="side-agents" style="display:none"></div>
   <div id="side-graph" style="display:none"></div>
   <form id="leaf-form" class="card" style="display:none" onsubmit="return postLeaf(event)">
-    <h4>开一张叶子</h4>
-    <label>编号（留空自动）</label><input name="leaf_id" placeholder="L1">
-    <label>题目</label><input name="task" required placeholder="一句可判分的问题">
-    <label>检查器</label><select name="checker" id="checker-sel"></select>
-    <label>参数 JSON</label><input name="checker_args" placeholder='{"n": 200}'>
-    <button type="submit">开题</button></form>
+    <h4 data-t="leaf_form_title"></h4>
+    <label data-t="f_id"></label><input name="leaf_id" placeholder="L1">
+    <label data-t="f_task"></label><input name="task" required data-t-ph="f_task_ph">
+    <label data-t="f_checker"></label><select name="checker" id="checker-sel"></select>
+    <label data-t="f_args"></label><input name="checker_args" placeholder='{"n": 200}'>
+    <button type="submit" data-t="f_open"></button></form>
   <form id="ticket-form" class="card" style="display:none" onsubmit="return postTicket(event)">
-    <h4>新票据</h4>
-    <label>标题</label><input name="title" required>
-    <label>负责人</label><input name="owner">
-    <label>决定人（填 user 进等你定）</label><input name="decider">
-    <label>下次触发</label><input name="next_trigger">
-    <button type="submit">建票</button></form>
+    <h4 data-t="ticket_form_title"></h4>
+    <label data-t="f_title"></label><input name="title" required>
+    <label data-t="f_owner"></label><input name="owner">
+    <label data-t="f_decider"></label><input name="decider">
+    <label data-t="f_trigger"></label><input name="next_trigger">
+    <button type="submit" data-t="f_create"></button></form>
   <form id="agent-form" class="card" style="display:none" onsubmit="return postAgent(event)">
-    <h4 id="agent-form-title">新增成员</h4>
-    <label>名字</label><input name="name" required placeholder="worker-3">
-    <label>角色</label><select name="role">
-      <option value="worker">worker（干活）</option>
-      <option value="reviewer">reviewer（复核）</option>
-      <option value="coordinator">coordinator（协调）</option></select>
-    <label>模型（留空 = 全局/演示后端）</label><input name="model" placeholder="gpt-… / deepseek-…">
-    <label>Base URL（OpenAI 兼容端点）</label><input name="base_url" placeholder="https://…/v1">
-    <label>API Key 所在环境变量名（只存名字不存 key）</label><input name="api_key_env" placeholder="MECH_AGENT_API_KEY">
+    <h4 id="agent-form-title"></h4>
+    <label data-t="a_name"></label><input name="name" required placeholder="worker-3">
+    <label data-t="a_role"></label><select name="role">
+      <option value="worker">worker</option>
+      <option value="reviewer">reviewer</option>
+      <option value="coordinator">coordinator</option></select>
+    <label data-t="a_model"></label><input name="model" placeholder="gpt-… / deepseek-…">
+    <label data-t="a_base"></label><input name="base_url" placeholder="https://…/v1">
+    <label data-t="a_keyenv"></label><input name="api_key_env" placeholder="MECH_AGENT_API_KEY">
     <label>Temperature</label><input name="temperature" type="number" step="0.1" min="0" max="2" value="0">
-    <label><input type="checkbox" name="enabled" checked style="width:auto"> 启用</label><br>
-    <button type="submit">保存成员</button>
-    <button type="button" class="ghost" onclick="hideAgentForm()">取消</button></form>
+    <label><input type="checkbox" name="enabled" checked style="width:auto"> <span data-t="a_enabled"></span></label><br>
+    <button type="submit" data-t="a_save"></button>
+    <button type="button" class="ghost" onclick="hideAgentForm()" data-t="a_cancel"></button></form>
 </aside>
 <main>
   <div class="modes" id="channels"></div>
   <div id="forkbar"></div>
   <div id="msgs"></div>
   <div id="composer"><div class="cbox">
-    <textarea id="input" rows="2" placeholder="给成员发消息，或输入 /run 叫醒一轮…"></textarea>
-    <div class="cfoot"><span class="pill" id="c-chan">全体</span>
+    <textarea id="input" rows="2"></textarea>
+    <div class="cfoot"><span class="pill" id="c-chan"></span>
     <span id="c-fork"></span>
-    <span>Enter 发送 · Shift+Enter 换行 · /run /leaf /ticket /help</span>
-    <span class="sp"><span id="c-model"></span><button onclick="sendChat()">发送</button></span></div>
+    <span data-t="composer_hint"></span>
+    <span class="sp"><span id="c-model"></span><button onclick="sendChat()" data-t="send"></button></span></div>
   </div></div>
 </main>
 <nav>
-  <h3>Prompt 导航</h3>
-  <div class="dim" style="margin-bottom:8px">点任意节点：定位到那条消息并设为分叉点，下一条消息从那里长出新分支（原线保留）。</div>
+  <h3 data-t="navi_title"></h3>
+  <div class="dim" style="margin-bottom:8px" data-t="navi_help"></div>
   <div id="nodes"></div>
-  <button class="ghost small" onclick="clearFork()" style="margin-top:8px">回到最新（取消分叉）</button>
+  <button class="ghost small" onclick="clearFork()" style="margin-top:8px" data-t="navi_clear"></button>
 </nav>
 <footer id="statusbar"></footer>
 <div id="toast"></div>
 <script>
+const L={
+en:{subtitle:"Research-mechanism console · the ledger is the only truth",wake:"▶ Wake one round",
+add_leaf:"＋ Leaf",add_ticket:"＋ Ticket",tab_tasks:"Tasks",tab_agents:"Agents",tab_graph:"Graph",
+decisions:"⏸ Decision queue",leaves:"Claim board · Leaves",tickets:"Tickets",agents:"Agents · Members",
+graph:"Relation graph",approve:"Approve",reject:"Reject",done:"Done",drop:"Drop",edit:"Edit",del:"Delete",
+note_ph:"Note (optional)",decider:"decider",trigger:"trigger",owner:"owner",no_checker:"no checker",
+no_leaves:"No leaves yet",no_tickets:"No tickets yet",claimed:"claimed",delivered:"delivered",closed_by:"closed by",
+add_agent:"＋ Add member",model_global:"(global / demo)",stats:"claimed {c} · delivered {d} · closed {x}",
+last:"last",disabled:"disabled",graph_note:"Lines = interactions that actually happened (dispatch / deliver / close / chat); numbers are counts. Edit a member to change its model parameters.",
+channel:"Channel",all:"all",chan_hint:"Chat persists · click any message to set a fork point",you:"you",
+fork_from:"↳ forked from #",fork_bar:"↳ Fork point: message #{id} — the next message grows a new branch from here.",
+cancel:"Cancel",empty_chan:"Nothing here yet. Send the first message below (or /run to wake a round).",
+k_open:"open",k_claim:"claim",k_deliver:"deliver",k_close:"close",k_stuck:"stuck",k_release:"release",
+sb_leaves:"leaves",sb_open:"open",sb_closed:"closed",sb_progress:"progress",sb_tickets:"tickets",
+sb_decisions:"⏸ {n} awaiting you",sb_channel:"channel",sb_model:"model",
+leaf_form_title:"Open a leaf",f_id:"ID (blank = auto)",f_task:"Task",f_task_ph:"One machine-gradable question",
+f_checker:"Checker",f_args:"Args JSON",f_open:"Open",ticket_form_title:"New ticket",f_title:"Title",
+f_owner:"Owner",f_decider:"Decider (user = decision queue)",f_trigger:"Next trigger",f_create:"Create",
+agent_new:"Add member",agent_edit:"Edit member ",a_name:"Name",a_role:"Role",
+a_model:"Model (blank = global / demo backend)",a_base:"Base URL (OpenAI-compatible endpoint)",
+a_keyenv:"Env var holding the API key (name only, never the key)",a_enabled:"Enabled",a_save:"Save member",a_cancel:"Cancel",
+navi_title:"Prompt navigator",navi_help:"Click any node: jump to that message and set it as the fork point. The next message grows a new branch there (the original line is kept).",
+navi_clear:"Back to latest (clear fork)",composer_ph:"Message a member, or type /run to wake a round…",
+composer_hint:"Enter send · Shift+Enter newline · /run /leaf /ticket /help",send:"Send",
+t_waking:"Waking…",t_round:"Round: proven {p} · refuted {r} · split {s}",t_error:"Error: ",
+t_leaf:"Leaf opened: ",t_ticket:"Ticket created #",t_decided:"Decision recorded",t_deleted:"Deleted ",
+t_saved:"Member saved: ",t_help:"/run wake a round · /leaf <task> open a leaf · /ticket <title> new ticket · click a message to fork",
+confirm_del:"Delete member {name}? (history is kept)",fork_chip:"↳ fork from #"},
+ja:{subtitle:"研究メカニズム・コンソール · 台帳が唯一の真実",wake:"▶ 一ラウンド起こす",
+add_leaf:"＋ リーフ",add_ticket:"＋ チケット",tab_tasks:"タスク",tab_agents:"メンバー",tab_graph:"関係図",
+decisions:"⏸ 要決定キュー",leaves:"クレームボード · リーフ",tickets:"チケット",agents:"メンバー · Agents",
+graph:"関係図",approve:"承認",reject:"却下",done:"完了",drop:"破棄",edit:"編集",del:"削除",
+note_ph:"メモ（任意）",decider:"決定者",trigger:"トリガー",owner:"担当",no_checker:"チェッカーなし",
+no_leaves:"リーフはまだない",no_tickets:"チケットはまだない",claimed:"請求",delivered:"納品",closed_by:"クローズ",
+add_agent:"＋ メンバー追加",model_global:"（全体／デモ）",stats:"請求 {c} · 納品 {d} · クローズ {x}",
+last:"最近",disabled:"無効",graph_note:"線＝実際に起きたやり取り（派遣／納品／クローズ／対話）、数字は回数。メンバーの編集でモデルパラメータを変更できる。",
+channel:"チャンネル",all:"全体",chan_hint:"会話は永続保存 · メッセージをクリックで分岐点に",you:"あなた",
+fork_from:"↳ 分岐元 #",fork_bar:"↳ 分岐点：メッセージ #{id} — 次のメッセージはここから新しい枝を伸ばす。",
+cancel:"取消",empty_chan:"まだ何もない。下から最初のメッセージを送る（または /run で一ラウンド）。",
+k_open:"開題",k_claim:"請求",k_deliver:"納品",k_close:"クローズ",k_stuck:"停滞",k_release:"解放",
+sb_leaves:"リーフ",sb_open:"開",sb_closed:"閉",sb_progress:"進捗",sb_tickets:"チケット",
+sb_decisions:"⏸ 要決定 {n} 件",sb_channel:"チャンネル",sb_model:"モデル",
+leaf_form_title:"リーフを開く",f_id:"ID（空欄＝自動）",f_task:"課題",f_task_ph:"機械で判定できる一問",
+f_checker:"チェッカー",f_args:"引数 JSON",f_open:"開く",ticket_form_title:"新規チケット",f_title:"タイトル",
+f_owner:"担当者",f_decider:"決定者（user＝要決定キュー）",f_trigger:"次のトリガー",f_create:"作成",
+agent_new:"メンバー追加",agent_edit:"メンバー編集 ",a_name:"名前",a_role:"役割",
+a_model:"モデル（空欄＝全体／デモバックエンド）",a_base:"Base URL（OpenAI 互換エンドポイント）",
+a_keyenv:"API キーを保持する環境変数名（名前のみ、キー自体は保存しない）",a_enabled:"有効",a_save:"保存",a_cancel:"キャンセル",
+navi_title:"Prompt ナビ",navi_help:"ノードをクリック：そのメッセージへ移動し分岐点に設定。次のメッセージはそこから新しい枝を伸ばす（元の線は保持）。",
+navi_clear:"最新へ戻る（分岐を解除）",composer_ph:"メンバーへメッセージ、または /run で一ラウンド…",
+composer_hint:"Enter 送信 · Shift+Enter 改行 · /run /leaf /ticket /help",send:"送信",
+t_waking:"起動中…",t_round:"本ラウンド：証明 {p} · 反証 {r} · 分割 {s}",t_error:"エラー：",
+t_leaf:"リーフを開いた：",t_ticket:"チケット作成 #",t_decided:"決定を記録した",t_deleted:"削除した ",
+t_saved:"メンバーを保存：",t_help:"/run 一ラウンド · /leaf 課題 リーフを開く · /ticket 題名 チケット作成 · メッセージのクリックで分岐",
+confirm_del:"メンバー {name} を削除する？（履歴は残る）",fork_chip:"↳ 分岐元 #"}};
+let lang=localStorage.getItem("mech-lang")||"en"; if(!L[lang])lang="en";
+const t=(k,v)=>{let s=L[lang][k]||L.en[k]||k;if(v)for(const x in v)s=s.replace("{"+x+"}",v[x]);return s};
 let S=null, channel="all", sideTab="tasks", forkParent=null, lastNearBottom=true;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const tm=ts=>new Date(ts*1000).toLocaleTimeString();
-function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";
+function toast(x){const e=$("toast");e.textContent=x;e.style.display="block";
   setTimeout(()=>e.style.display="none",3600)}
 async function api(path,body){const r=await fetch(path,{method:body?"POST":"GET",
   headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
   const d=await r.json();if(!r.ok)throw new Error(d.error||r.status);return d}
 function thread(){return S.chat.filter(m=>m.channel===channel||m.channel==="all")}
 function curAgent(){return S.agents.find(a=>a.name===channel)}
+function applyStatic(){document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t(e.dataset.t));
+  document.querySelectorAll("[data-t-ph]").forEach(e=>e.placeholder=t(e.dataset.tPh));
+  $("input").placeholder=t("composer_ph");document.documentElement.lang=lang==="ja"?"ja":"en"}
 function render(){
   if(!S)return;
+  applyStatic();
   $("ver").textContent=S.version?" · v"+S.version:"";
-  $("stabs").innerHTML=[["tasks","任务"],["agents","成员"],["graph","关系图"]].map(([k,v])=>
+  $("stabs").innerHTML=[["tasks",t("tab_tasks")],["agents",t("tab_agents")],["graph",t("tab_graph")]].map(([k,v])=>
     `<button class="${sideTab===k?"on":""}" onclick="sideTab='${k}';render()">${v}${k==="tasks"&&S.counts.decisions?`<span class="badge">${S.counts.decisions}</span>`:""}</button>`).join("");
   for(const k of["tasks","agents","graph"]) $("side-"+k).style.display=sideTab===k?"block":"none";
   const tot=S.counts.leaves_open+S.counts.leaves_closed;
@@ -503,73 +566,75 @@ function render(){
   const a=curAgent();
   $("statusbar").innerHTML=
     `<span><span class="acc">●</span> mechanism-agent${S.version?" v"+S.version:""}</span>`+
-    `<span>叶子 <b>${S.counts.leaves_open}</b> 开 / <b>${S.counts.leaves_closed}</b> 关</span>`+
-    `<span>进度 <span class="meter"><i style="width:${pct}%"></i></span> ${pct}%</span>`+
-    `<span>票据 ${S.counts.tickets_open} 开</span>`+
-    (S.counts.decisions?`<span class="warn">⏸ 等你定 ${S.counts.decisions} 件</span>`:"")+
-    `<span class="right"><span>${channel==="all"?"频道 全体":"频道 "+esc(channel)}</span>`+
-    `<span>模型 ${esc(a?(a.model||"全局/演示"):"—")}</span></span>`;
-  $("c-chan").textContent=channel==="all"?"全体":channel;
-  $("c-model").textContent=a?("模型 "+(a.model||"全局/演示")):"";
-  $("c-fork").textContent=forkParent?("↳ 分叉自 #"+forkParent):"";
+    `<span>${t("sb_leaves")} <b>${S.counts.leaves_open}</b> ${t("sb_open")} / <b>${S.counts.leaves_closed}</b> ${t("sb_closed")}</span>`+
+    `<span>${t("sb_progress")} <span class="meter"><i style="width:${pct}%"></i></span> ${pct}%</span>`+
+    `<span>${t("sb_tickets")} ${S.counts.tickets_open} ${t("sb_open")}</span>`+
+    (S.counts.decisions?`<span class="warn">${t("sb_decisions",{n:S.counts.decisions})}</span>`:"")+
+    `<span class="right"><span class="lang"><button class="${lang==="en"?"on":""}" onclick="setLang('en')">EN</button>|<button class="${lang==="ja"?"on":""}" onclick="setLang('ja')">日本語</button></span>`+
+    `<span>${t("sb_channel")} ${channel==="all"?t("all"):esc(channel)}</span>`+
+    `<span>${t("sb_model")} ${esc(a?(a.model||t("model_global")):"—")}</span></span>`;
+  $("c-chan").textContent=channel==="all"?t("all"):channel;
+  $("c-model").textContent=a?("model "+(a.model||t("model_global"))):"";
+  $("c-fork").textContent=forkParent?(t("fork_chip")+forkParent):"";
   renderTasks();renderAgents();renderGraph();renderChat();
 }
+function setLang(x){lang=x;localStorage.setItem("mech-lang",x);render()}
 function renderTasks(){
   const el=$("side-tasks");if(document.activeElement&&el.contains(document.activeElement)&&
     /INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
   let h="";
-  if(S.decisions.length){h+='<div class="sect">⏸ 等你定</div>'+S.decisions.map(t=>`
+  if(S.decisions.length){h+=`<div class="sect">${t("decisions")}</div>`+S.decisions.map(x=>`
     <div class="trow dec"><div class="r1"><span style="color:var(--amber)">●</span>
-    <span class="id">#${t.id}</span><span class="ttl">${esc(t.title)}</span></div>
-    <div class="meta">决定人 ${esc(t.decider)} · 触发 ${esc(t.next_trigger||"—")}</div>
-    <div class="act"><input id="note-${t.id}" placeholder="附言（可选）">
-    <button class="small okb" onclick="decide(${t.id},'approve')">批准</button>
-    <button class="small warn" onclick="decide(${t.id},'reject')">否决</button></div></div>`).join("")}
-  h+='<div class="sect">认领板 · Leaves</div>'+(S.leaves.map(l=>`
+    <span class="id">#${x.id}</span><span class="ttl">${esc(x.title)}</span></div>
+    <div class="meta">${t("decider")} ${esc(x.decider)} · ${t("trigger")} ${esc(x.next_trigger||"—")}</div>
+    <div class="act"><input id="note-${x.id}" placeholder="${t("note_ph")}">
+    <button class="small okb" onclick="decide(${x.id},'approve')">${t("approve")}</button>
+    <button class="small warn" onclick="decide(${x.id},'reject')">${t("reject")}</button></div></div>`).join("")}
+  h+=`<div class="sect">${t("leaves")}</div>`+(S.leaves.map(l=>`
     <div class="trow"><div class="r1"><span class="sdot ${l.status==="closed"?l.outcome:l.status}"></span>
     <span class="id">${esc(l.leaf_id)}</span><span class="ttl">${esc(l.task)}</span>
     <span class="tag ${l.status==="closed"?l.outcome:""}">${l.status==="closed"?l.outcome:l.status}</span></div>
-    <div class="meta">${esc(l.checker||"无检查器")}${l.claimed_by?" · "+esc(l.claimed_by):""}${l.delivered_by?" → "+esc(l.delivered_by):""}${l.closed_by?" · 关 "+esc(l.closed_by):""}</div></div>`).join("")||'<div class="dim">暂无叶子</div>');
-  h+='<div class="sect">票据 · Tickets</div>'+(S.tickets.map(t=>`
-    <div class="trow"><div class="r1"><span class="sdot ${t.status==="closed"?"closed":"open"}"></span>
-    <span class="id">#${t.id}</span><span class="ttl">${esc(t.title)}</span>
-    <span class="tag">${t.status}</span></div>
-    <div class="meta">负责人 ${esc(t.owner||"—")} · 决定人 ${esc(t.decider||"—")}</div>
-    ${t.status!=="closed"?`<div class="act"><button class="small okb" onclick="closeTicket(${t.id},'done')">完成</button>
-    <button class="small warn" onclick="closeTicket(${t.id},'dropped')">放弃</button></div>`:""}</div>`).join("")||'<div class="dim">暂无票据</div>');
+    <div class="meta">${esc(l.checker||t("no_checker"))}${l.claimed_by?" · "+t("claimed")+" "+esc(l.claimed_by):""}${l.delivered_by?" · "+t("delivered")+" "+esc(l.delivered_by):""}${l.closed_by?" · "+t("closed_by")+" "+esc(l.closed_by):""}</div></div>`).join("")||`<div class="dim">${t("no_leaves")}</div>`);
+  h+=`<div class="sect">${t("tickets")}</div>`+(S.tickets.map(x=>`
+    <div class="trow"><div class="r1"><span class="sdot ${x.status==="closed"?"closed":"open"}"></span>
+    <span class="id">#${x.id}</span><span class="ttl">${esc(x.title)}</span>
+    <span class="tag">${x.status}</span></div>
+    <div class="meta">${t("owner")} ${esc(x.owner||"—")} · ${t("decider")} ${esc(x.decider||"—")}</div>
+    ${x.status!=="closed"?`<div class="act"><button class="small okb" onclick="closeTicket(${x.id},'done')">${t("done")}</button>
+    <button class="small warn" onclick="closeTicket(${x.id},'dropped')">${t("drop")}</button></div>`:""}</div>`).join("")||`<div class="dim">${t("no_tickets")}</div>`);
   el.innerHTML=h;
 }
 function renderAgents(){
   const el=$("side-agents");
-  el.innerHTML='<div class="sect">成员 · Agents</div>'+S.agents.map(a=>`
+  el.innerHTML=`<div class="sect">${t("agents")}</div>`+S.agents.map(a=>`
    <div class="trow"><div class="r1"><span class="sdot" style="background:${!a.enabled?"#484f58":a.state==="Active"?"var(--green)":"#6e7681"}"></span>
     <span class="ttl" style="flex:none">${esc(a.name)}</span><span class="tag">${a.role}</span>
-    <span class="tag">${a.enabled?a.state:"停用"}</span>
-    <span style="margin-left:auto;display:flex;gap:4px"><button class="small ghost" onclick='editAgent(${JSON.stringify(a.name)})'>编辑</button>
-    <button class="small warn" onclick='delAgent(${JSON.stringify(a.name)})'>删除</button></span></div>
-    <div class="meta">${esc(a.model||"（全局/演示）")}${a.base_url?" · "+esc(a.base_url):""} · temp ${a.temperature}</div>
-    <div class="meta">认领 ${a.stats.claimed} · 交付 ${a.stats.delivered} · 关单 ${a.stats.closed}${a.last?" · 最近 "+esc(a.last):""}</div></div>`).join("")
-   +'<button class="ghost" onclick="newAgent()" style="margin-top:6px">＋ 新增成员</button>';
+    <span class="tag">${a.enabled?a.state:t("disabled")}</span>
+    <span style="margin-left:auto;display:flex;gap:4px"><button class="small ghost" onclick='editAgent(${JSON.stringify(a.name)})'>${t("edit")}</button>
+    <button class="small warn" onclick='delAgent(${JSON.stringify(a.name)})'>${t("del")}</button></span></div>
+    <div class="meta">${esc(a.model||t("model_global"))}${a.base_url?" · "+esc(a.base_url):""} · temp ${a.temperature}</div>
+    <div class="meta">${t("stats",{c:a.stats.claimed,d:a.stats.delivered,x:a.stats.closed})}${a.last?" · "+t("last")+" "+esc(a.last):""}</div></div>`).join("")
+   +`<button class="ghost" onclick="newAgent()" style="margin-top:6px">${t("add_agent")}</button>`;
 }
 function renderGraph(){
   const el=$("side-graph");const g=S.graph;
   const cx=140,cy=118,R=84;const pos={user:[cx,cy]};
   const others=g.nodes.filter(n=>n.name!=="user");
-  others.forEach((n,i)=>{const t=2*Math.PI*i/Math.max(others.length,1)-Math.PI/2;
-    pos[n.name]=[cx+R*Math.cos(t),cy+R*Math.sin(t)]});
+  others.forEach((n,i)=>{const ang=2*Math.PI*i/Math.max(others.length,1)-Math.PI/2;
+    pos[n.name]=[cx+R*Math.cos(ang),cy+R*Math.sin(ang)]});
   const col={dispatch:"#6e7681",deliver:"#58a6ff",close:"#4caf7d",chat:"#b083f0",reply:"#2a9f8f"};
-  let s=`<div class="sect">关系图 · Graph</div><svg width="280" height="236" viewBox="0 0 280 236">`;
+  let s=`<div class="sect">${t("graph")}</div><svg width="280" height="236" viewBox="0 0 280 236">`;
   for(const e of g.edges){const a=pos[e.from],b=pos[e.to];if(!a||!b)continue;
     s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col[e.kind]||"#555"}" stroke-width="1.3"/>
     <text x="${(a[0]+b[0])/2}" y="${(a[1]+b[1])/2-3}">${e.kind} ×${e.count}</text>`}
   for(const n of g.nodes){const p=pos[n.name];
     s+=`<circle cx="${p[0]}" cy="${p[1]}" r="15" fill="${n.name==="user"?"#d97757":"#1c1d21"}" stroke="#d97757"/>
     <text x="${p[0]}" y="${p[1]+26}" text-anchor="middle">${esc(n.name)}</text>
-    <text x="${p[0]}" y="${p[1]+3}" text-anchor="middle" fill="${n.name==="user"?"#14100d":"#d97757"}">${n.name==="user"?"你":esc(n.role[0].toUpperCase())}</text>`}
-  el.innerHTML=s+"</svg>"+'<div class="dim">线 = 实际发生过的交互（派工/交付/关单/对话），数字为次数。成员页可增减成员、改各自的模型参数。</div>';
+    <text x="${p[0]}" y="${p[1]+3}" text-anchor="middle" fill="${n.name==="user"?"#14100d":"#d97757"}">${n.name==="user"?"U":esc(n.role[0].toUpperCase())}</text>`}
+  el.innerHTML=s+"</svg>"+`<div class="dim">${t("graph_note")}</div>`;
 }
-const KINDMK={open:["●","gray","开题"],claim:["●","blue","认领"],deliver:["●","purple","交付"],
-  close:["●","green","关单"],stuck:["●","amber","卡住"],release:["●","gray","释放"]};
+const KINDMK={open:["●","gray","k_open"],claim:["●","blue","k_claim"],deliver:["●","purple","k_deliver"],
+  close:["●","green","k_close"],stuck:["●","amber","k_stuck"],release:["●","gray","k_release"]};
 function transcriptItems(){
   const items=thread().map(m=>({ts:m.ts,type:"chat",m}));
   if(channel==="all")for(const e of S.feed)items.push({ts:e.ts,type:"tool",e});
@@ -578,38 +643,38 @@ function transcriptItems(){
 function renderChat(){
   const chans=["all",...S.agents.filter(a=>a.role!=="coordinator").map(a=>a.name)];
   if(!chans.includes(channel))channel="all";
-  $("channels").innerHTML='<span class="lbl">频道</span>'+chans.map(c=>
-    `<button class="${c===channel?"on":""}" onclick="channel='${c}';forkParent=null;render()">${c==="all"?"全体":c}</button>`).join("")
-    +'<span class="hint">会话持久保存 · 点任意消息设为分叉点</span>';
+  $("channels").innerHTML=`<span class="lbl">${t("channel")}</span>`+chans.map(c=>
+    `<button class="${c===channel?"on":""}" onclick="channel='${c}';forkParent=null;render()">${c==="all"?t("all"):c}</button>`).join("")
+    +`<span class="hint">${t("chan_hint")}</span>`;
   const items=transcriptItems();const box=$("msgs");
   const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
   let prev=null;
   box.innerHTML=items.map(it=>{
-    if(it.type==="tool"){const e=it.e;const k=KINDMK[e.kind]||["●","gray",e.kind||"事件"];
+    if(it.type==="tool"){const e=it.e;const k=KINDMK[e.kind]||["●","gray",null];
       return `<div class="ev"><div class="hd"><span class="mk ${k[1]}">${k[0]}</span>
-      <span class="who">${k[2]} ${esc(e.leaf||"")}</span> <span class="tm">${tm(e.ts)}</span></div>
+      <span class="who">${k[2]?t(k[2]):e.kind} ${esc(e.leaf||"")}</span> <span class="tm">${tm(e.ts)}</span></div>
       <div class="bd res">⎿ ${e.by?"by "+esc(e.by):""}${e.outcome?' → <span class="oc">'+esc(e.outcome)+"</span>":""}</div></div>`}
     const m=it.m;const forked=m.parent_id&&prev!==null&&m.parent_id!==prev;prev=m.id;
     if(m.author==="user")return `<div class="ev user ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
-      <div class="hd"><span class="gt">&gt;</span> <span class="who">你</span> <span class="tm">#${m.id} · ${tm(m.ts)}${m.channel!=="all"&&channel==="all"?" · @"+esc(m.channel):""}</span></div>
-      ${forked?`<div class="fork">↳ 分叉自 #${m.parent_id}</div>`:""}
+      <div class="hd"><span class="gt">&gt;</span> <span class="who">${t("you")}</span> <span class="tm">#${m.id} · ${tm(m.ts)}${m.channel!=="all"&&channel==="all"?" · @"+esc(m.channel):""}</span></div>
+      ${forked?`<div class="fork">${t("fork_from")}${m.parent_id}</div>`:""}
       <div class="bd">${esc(m.text)}</div></div>`;
     const mk=m.kind==="summary"?["✻","acc"]:["●","blue"];
     return `<div class="ev ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
       <div class="hd"><span class="mk ${mk[1]}">${mk[0]}</span> <span class="who">${esc(m.author)}</span> <span class="tm">#${m.id} · ${tm(m.ts)}</span></div>
-      ${forked?`<div class="fork">↳ 分叉自 #${m.parent_id}</div>`:""}
-      <div class="bd">${esc(m.text)}</div></div>`}).join("")||'<div class="dim">这个频道还没有消息，在下面发第一条（或 /run 叫醒一轮）。</div>';
+      ${forked?`<div class="fork">${t("fork_from")}${m.parent_id}</div>`:""}
+      <div class="bd">${esc(m.text)}</div></div>`}).join("")||`<div class="dim">${t("empty_chan")}</div>`;
   if(nearBottom||lastNearBottom)box.scrollTop=box.scrollHeight;
   lastNearBottom=nearBottom;
   const fb=$("forkbar");
   if(forkParent){fb.style.display="block";
-    fb.innerHTML=`↳ 分叉点：消息 #${forkParent} — 下一条消息将从这里长出新分支。<a href="#" onclick="clearFork();return false">取消</a>`}
+    fb.innerHTML=t("fork_bar",{id:forkParent})+` <a href="#" onclick="clearFork();return false">${t("cancel")}</a>`}
   else fb.style.display="none";
   $("nodes").innerHTML=thread().slice().reverse().map(m=>
     `<div class="node ${forkParent===m.id?"sel":""}" onclick="jumpTo(${m.id})">
     <span class="a">#${m.id} ${esc(m.author)}</span> ${esc(m.text.slice(0,30))}</div>`).join("");
   const sel=$("checker-sel");
-  if(sel&&sel.options.length===0)sel.innerHTML='<option value="">（无检查器）</option>'+S.checkers.map(c=>`<option>${c}</option>`).join("");
+  if(sel&&sel.options.length===0)sel.innerHTML=`<option value="">(${t("no_checker")})</option>`+S.checkers.map(c=>`<option>${c}</option>`).join("");
 }
 function setFork(id){forkParent=id;render();
   const e=$("msg-"+id);if(e)e.scrollIntoView({block:"center"})}
@@ -617,40 +682,40 @@ function jumpTo(id){setFork(id)}
 function clearFork(){forkParent=null;render();const b=$("msgs");b.scrollTop=b.scrollHeight}
 async function sendChat(){const ta=$("input");const text=ta.value.trim();if(!text)return;
   try{
-    if(text==="/help"){toast("/run 叫醒一轮 · /leaf 题目 开叶子 · /ticket 标题 建票据 · 点消息设分叉点");ta.value="";return}
+    if(text==="/help"){toast(t("t_help"));ta.value="";return}
     if(text==="/run"){ta.value="";runCycle();return}
-    if(text.startsWith("/leaf ")){await api("/api/leaf",{task:text.slice(6)});ta.value="";toast("已开叶子");refresh();return}
-    if(text.startsWith("/ticket ")){await api("/api/ticket",{title:text.slice(8)});ta.value="";toast("已建票据");refresh();return}
+    if(text.startsWith("/leaf ")){await api("/api/leaf",{task:text.slice(6)});ta.value="";toast(t("t_leaf"));refresh();return}
+    if(text.startsWith("/ticket ")){await api("/api/ticket",{title:text.slice(8)});ta.value="";toast(t("t_ticket"));refresh();return}
     await api("/api/chat",{channel,text,parent_id:forkParent});ta.value="";forkParent=null;refresh()}
-  catch(e){toast("出错："+e.message)}}
+  catch(e){toast(t("t_error")+e.message)}}
 $("input").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}});
-async function runCycle(){toast("叫醒中…");try{const r=await api("/api/run",{});
-  toast("本轮：证成 "+r.proven+" · 证否 "+r.refuted+" · 拆小 "+r.split);refresh()}catch(e){toast("出错："+e.message)}}
+async function runCycle(){toast(t("t_waking"));try{const r=await api("/api/run",{});
+  toast(t("t_round",{p:r.proven,r:r.refuted,s:r.split}));refresh()}catch(e){toast(t("t_error")+e.message)}}
 async function decide(id,decision){const n=$("note-"+id);
-  try{await api("/api/decide",{ticket_id:id,decision,note:n?n.value:""});toast("决定已记录");refresh()}catch(e){toast("出错："+e.message)}}
-async function closeTicket(id,reason){try{await api("/api/close-ticket",{ticket_id:id,reason});refresh()}catch(e){toast("出错："+e.message)}}
+  try{await api("/api/decide",{ticket_id:id,decision,note:n?n.value:""});toast(t("t_decided"));refresh()}catch(e){toast(t("t_error")+e.message)}}
+async function closeTicket(id,reason){try{await api("/api/close-ticket",{ticket_id:id,reason});refresh()}catch(e){toast(t("t_error")+e.message)}}
 function showTaskForm(k){$("leaf-form").style.display=k==="leaf"?"block":"none";
   $("ticket-form").style.display=k==="ticket"?"block":"none";sideTab="tasks";render();
   $(k+"-form").scrollIntoView()}
 async function postLeaf(ev){ev.preventDefault();const f=new FormData(ev.target);
-  try{const r=await api("/api/leaf",Object.fromEntries(f));toast("已开叶子 "+r.leaf_id);
-  ev.target.reset();$("leaf-form").style.display="none";refresh()}catch(e){toast("出错："+e.message)}return false}
+  try{const r=await api("/api/leaf",Object.fromEntries(f));toast(t("t_leaf")+r.leaf_id);
+  ev.target.reset();$("leaf-form").style.display="none";refresh()}catch(e){toast(t("t_error")+e.message)}return false}
 async function postTicket(ev){ev.preventDefault();const f=new FormData(ev.target);
-  try{const r=await api("/api/ticket",Object.fromEntries(f));toast("已建票 #"+r.ticket_id);
-  ev.target.reset();$("ticket-form").style.display="none";refresh()}catch(e){toast("出错："+e.message)}return false}
-function newAgent(){$("agent-form").style.display="block";$("agent-form-title").textContent="新增成员";
+  try{const r=await api("/api/ticket",Object.fromEntries(f));toast(t("t_ticket")+r.ticket_id);
+  ev.target.reset();$("ticket-form").style.display="none";refresh()}catch(e){toast(t("t_error")+e.message)}return false}
+function newAgent(){$("agent-form").style.display="block";$("agent-form-title").textContent=t("agent_new");
   $("agent-form").reset();sideTab="agents";render();$("agent-form").scrollIntoView()}
 function editAgent(name){const a=S.agents.find(x=>x.name===name);if(!a)return;
-  const f=$("agent-form");f.style.display="block";$("agent-form-title").textContent="编辑成员 "+name;
+  const f=$("agent-form");f.style.display="block";$("agent-form-title").textContent=t("agent_edit")+name;
   const E=f.elements;E["name"].value=a.name;E["role"].value=a.role;E["model"].value=a.model;
   E["base_url"].value=a.base_url;E["api_key_env"].value=a.api_key_env;
   E["temperature"].value=a.temperature;E["enabled"].checked=a.enabled;
   sideTab="agents";render();f.scrollIntoView()}
-async function delAgent(name){if(!confirm("删除成员 "+name+"？（历史记录保留）"))return;
-  try{await api("/api/agents/delete",{name});toast("已删除 "+name);refresh()}catch(e){toast("出错："+e.message)}}
+async function delAgent(name){if(!confirm(t("confirm_del",{name})))return;
+  try{await api("/api/agents/delete",{name});toast(t("t_deleted")+name);refresh()}catch(e){toast(t("t_error")+e.message)}}
 async function postAgent(ev){ev.preventDefault();const f=new FormData(ev.target);
   const rec=Object.fromEntries(f);rec.enabled=f.get("enabled")==="on";rec.temperature=parseFloat(rec.temperature||"0");
-  try{await api("/api/agents",rec);toast("成员已保存："+rec.name);hideAgentForm();refresh()}catch(e){toast("出错："+e.message)}return false}
+  try{await api("/api/agents",rec);toast(t("t_saved")+rec.name);hideAgentForm();refresh()}catch(e){toast(t("t_error")+e.message)}return false}
 function hideAgentForm(){$("agent-form").style.display="none"}
 async function refresh(){try{S=await api("/api/state");render()}catch(e){}}
 refresh();setInterval(refresh,3000);

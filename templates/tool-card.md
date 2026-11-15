@@ -1,12 +1,12 @@
-# 工具卡（每个新工具一页）
+# Tool Card (one page per new tool)
 
 ```text
-工具名：
-类别：甲（表示与推导） / 乙（裁判与记分） / 丙（卡点转题）
-它解决什么：没有它时哪类问题做不动 / 判不了
-原理：公式写一遍，白话写一遍（谁在付钱、为什么有这个钱、何时失效——按领域替换）
-已知答案：人工可算的小例 + 预期输出（先过这个再上真题）
-改坏必失败：故意改错的一处 + 测试必须变红的位置
-用过的真题：在哪道题上改变了哪个判断（没有就写"尚未"，不许写"即将"）
-适用边界：模型类 / 数据条件 / 失效情形
+Tool name:
+Class: A (representation and derivation) / B (judging and scoring) / C (turning blockers into new tasks)
+What it solves: which class of problems cannot be done / cannot be judged without it
+Principle: write the formula once, then write it in plain words (who pays, why the money is there, when it fails — adapt to the domain)
+Known answer: a small example computable by hand + expected output (pass this before touching a real problem)
+Mutation must fail: one deliberate corruption + where the test must go red
+Real problem used on: on which problem it changed which judgment (if none, write "not yet" — never "about to")
+Applicable boundary: model class / data conditions / failure cases
 ```

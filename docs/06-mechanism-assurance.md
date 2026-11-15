@@ -1,65 +1,48 @@
-# 06 · 机制的自我保证：不半路停摆、不悄悄变质
+# 06 · Self-Assurance of the Mechanism: Not Stalling Midway, Not Quietly Degrading
 
-一套机制最大的风险不是被反对，而是**转着转着就停了、或者悄悄变了味**
-还无人发觉。本章写机制如何保证自身：活性、正确性、恢复、防腐四件事。
+The greatest risk to a mechanism is not being opposed, but **grinding to a halt as it runs, or quietly changing flavor**, with nobody noticing. This chapter describes how a mechanism assures itself: liveness, correctness, recovery, and anti-decay.
 
-## 活性（Liveness）：停了要有人知道
+## Liveness: If It Stops, Somebody Must Know
 
-- **定时叫醒**：协调者按固定节奏被唤醒（而不是"有空再看"），每次唤醒
-  先跑只读检查器，再处理业务。检查器只回答三个问题：
-  谁的交付漏接了、谁的认领超时了、哪张表过期没更新。
-- **心跳与唯一写入方**：每类持续进程（数据落地、记账、监控）有唯一写入方，
-  写入带时间戳；超过约定间隔没有新时间戳 = 该进程死了，按事故处理，
-  不按"今天没数据"处理。
-- **漏接检测**：消息"已读"与成果"已接收"之间加一道独立对账
-  （检查器按状态表与提交历史交叉核对），漏接在下一轮叫醒时必被捞起。
+- **Timed wake-ups**: the coordinator is woken on a fixed rhythm (rather than "looks in when free"); each wake-up first runs a read-only checker, then handles business. The checker answers only three questions: whose delivery was missed, whose claim has timed out, which table is stale.
+- **Heartbeat and single writer**: every class of continuous process (data landing, bookkeeping, monitoring) has a single writer, and writes carry timestamps; no new timestamp beyond the agreed interval = the process is dead — handled as an incident, not as "no data today."
+- **Missed-delivery detection**: between a message being "read" and a deliverable being "received" there is an independent reconciliation (the checker cross-verifies the status table against the commit history); a missed delivery is necessarily picked up at the next wake-up.
 
-## 正确性（Correctness）：错了要抓得住
+## Correctness: If It Is Wrong, It Must Be Catchable
 
-- **单一真源 + 锁**：原话、任务状态、证据台账各只有一个真源；
-  写入经统一入口并加锁，禁止绕过入口直接改文件。
-- **改坏测试适用于机制本身**：定期对关键规则做变异——故意写错一处
-  （漏一个必填字段、改一个阈值），看闸门抓不抓得住；抓不住的闸门按不存在计。
-- **闸门前置**：提交前自动校验（必填字段、事前功效文件存在、口径标注），
-  不合格当场退回，不靠事后复核捞。
-- **作者不自审**同样适用于机制变更：改规则的人不能独自宣布新规则生效；
-  规则改动留痕（谁、何时、依据哪条原话/决议），无出处的规则不生效。
+- **Single source of truth + lock**: the user's original words, the task status, and the evidence ledger each have exactly one source of truth; writes go through a unified entry point under a lock, and editing files directly around the entry point is forbidden.
+- **Mutation tests apply to the mechanism itself**: periodically mutate key rules — deliberately write one place wrong (omit a required field, change a threshold) and see whether the gate catches it; a gate that cannot catch is counted as nonexistent.
+- **Gates up front**: automatic validation before submission (required fields, the prior-power file exists, caliber labels present); nonconforming items are returned on the spot rather than fished out by later review.
+- **Authors never review their own work** also applies to mechanism changes: whoever changes a rule cannot alone declare the new rule in effect; rule changes leave a trace (who, when, on the basis of which original words / resolution), and a rule with no provenance does not take effect.
 
-## 恢复（Recovery）：坏了要能接续
+## Recovery: If It Breaks, Work Must Be Continuable
 
-交付与接续按**幂等**设计，六种故障各要有可复跑的测试：
+Delivery and handover are designed to be **idempotent**; each of six failure modes needs a re-runnable test:
 
-1. 同一交付重复投递 → 不重复入账。
-2. 读取瞬间有新回复到达 → 不丢、不重读错位。
-3. 多人被通知、一人关闭事项 → 其他人的待办正确失效。
-4. "收到"之后执行者停滞 → 检查器超时报警并可改派。
-5. 旧实例晚到交付 → 按版本判定，不覆盖新版结论。
-6. v1 交付晚于 v2 交付 → 状态表以版本为准，不回退。
+1. The same delivery is delivered twice → not booked twice.
+2. A new reply arrives at the instant of reading → not lost, not read out of alignment.
+3. Several people are notified, one closes the item → the others' to-dos correctly lapse.
+4. After "received," the executor stalls → the checker raises a timeout alarm and the item can be reassigned.
+5. An old instance delivers late → judged by version; it does not overwrite the new version's conclusion.
+6. A v1 delivery arrives after the v2 delivery → the status table follows the version and does not roll back.
 
-- **接续演练**：新会话只凭交接页与真源文件，应能复现关键数字并接上工作；
-  演练不过，说明知识还锁在某个会话里，按架构缺陷处理。
-- **备份验收**：本地与远端逐一核对 HEAD 一致才算备份完成；
-  "复制到另一块盘"不算备份。
+- **Handover drill**: a new session, relying only on the handover page and the source-of-truth files, should be able to reproduce the key numbers and pick up the work; if the drill fails, knowledge is still locked inside some session, and that is treated as an architecture defect.
+- **Backup acceptance**: backup counts as complete only when local and remote HEADs are verified to match, one by one; "copied to another disk" is not a backup.
 
-## 防腐（Anti-decay）：久了不变味
+## Anti-Decay: Not Changing Flavor over Time
 
-- **对根本要求的定期对账**：每日一页先对、每周全对；
-  对账结论只有"符合 / 漂移（指出哪条）"，漂移项进下一轮的认领板。
-- **降级模式写明**：资源（额度、算力、审核人力）冻结时不是停摆，
-  而是按预定路由降级——哪些活继续、哪些活暂停、谁在冻结期不许被唤醒，
-  都事先写在状态表里，冻结解除后先重读状态再派活。
-- **引用卫生**：定期抽查在用结论的引用是否带证据层与口径；
-  发现"没答写成已排除"类句式，按事故登记并回改所有引用处。
-- **机制自身的版本**：本框架文档有版本号与变更记录；
-  任何"我们一直是这么做的"若在文档里找不到出处，视为不存在。
+- **Periodic reconciliation against the fundamental requirements**: the daily page reconciles first, the week reconciles fully; reconciliation verdicts are only "conforming / drifting (pointing at which item)," and drift items enter the next round's claim board.
+- **Degraded modes written down**: when resources (quota, compute, reviewer labor) freeze, the mechanism does not stall but degrades along pre-set routes — which work continues, which pauses, who may not be woken during the freeze — all written into the status table in advance; when the freeze lifts, re-read the status before assigning work.
+- **Citation hygiene**: periodically sample in-use conclusions for evidence-tier and caliber labels; sentence patterns like "not answered" written as "excluded" are registered as incidents, and every citing place is corrected.
+- **The mechanism's own version**: this framework's documents carry version numbers and a change log; any "we have always done it this way" that cannot be found in the documents counts as nonexistent.
 
-## 一张自检表（每周跑一次）
+## A Self-Check Table (Run Weekly)
 
-| 问 | 证据 |
+| Question | Evidence |
 |---|---|
-| 上周有没有交付漏接超过一轮叫醒？ | 检查器日志 |
-| 每个持续进程的心跳都在间隔内吗？ | 时间戳抽查 |
-| 六种恢复故障的测试还全绿吗？ | 测试输出 |
-| 上周关单里有没有"判不出"或空等？ | 认领板扫描 |
-| 根本要求对账做了吗？漂移项进板了吗？ | 每日一页 + 状态表 |
-| 本地与远端 HEAD 一致吗？ | 逐仓核对记录 |
+| Last week, was any delivery missed for more than one wake-up round? | Checker logs |
+| Is every continuous process's heartbeat within its interval? | Timestamp sampling |
+| Are the tests for all six recovery failure modes still green? | Test output |
+| Among last week's closings, was there any "cannot determine" or empty waiting? | Claim board scan |
+| Was the fundamental-requirements reconciliation done? Did drift items enter the board? | Daily pages + status table |
+| Do local and remote HEADs match? | Per-repository verification record |

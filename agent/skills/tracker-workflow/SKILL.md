@@ -4,7 +4,7 @@ description: How tickets, merge requests and the claim board fit together on a l
 roles: [coordinator, worker, reviewer]
 ---
 
-# Tracker workflow（票据工作流）
+# Tracker workflow
 
 Tickets are the human-scale layer; leaves are the machine-scale layer.
 The tracker (Gitea or GitLab, self-hosted) holds tickets and merge

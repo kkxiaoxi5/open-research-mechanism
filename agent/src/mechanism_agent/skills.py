@@ -9,6 +9,10 @@ working habits along with its machinery.
 Front matter is parsed with a deliberately tiny parser (no YAML
 dependency); unknown fields are ignored, missing name/description
 is an error — a skill that cannot say what it is for does not load.
+
+Language: with MECH_AGENT_LANG=ja, a skill directory's SKILL.ja.md
+is loaded when it exists, falling back to SKILL.md. Any other value
+(or unset) loads SKILL.md.
 """
 from __future__ import annotations
 
@@ -39,13 +43,22 @@ def _parse_front_matter(text: str) -> tuple[dict, str]:
     return meta, body.strip()
 
 
+def _skill_file(skill_dir: str) -> str:
+    """The skill file to load for a directory, honoring MECH_AGENT_LANG."""
+    if os.environ.get("MECH_AGENT_LANG") == "ja":
+        ja = os.path.join(skill_dir, "SKILL.ja.md")
+        if os.path.isfile(ja):
+            return ja
+    return os.path.join(skill_dir, "SKILL.md")
+
+
 def discover(skills_dir: str = DEFAULT_SKILLS_DIR) -> list[dict]:
     """All bundled skills as {name, description, roles, path, body}."""
     out = []
     if not os.path.isdir(skills_dir):
         return out
     for name in sorted(os.listdir(skills_dir)):
-        path = os.path.join(skills_dir, name, "SKILL.md")
+        path = _skill_file(os.path.join(skills_dir, name))
         if not os.path.isfile(path):
             continue
         with open(path, encoding="utf-8") as fh:

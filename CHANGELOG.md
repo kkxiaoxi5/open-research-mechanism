@@ -1,133 +1,146 @@
 # Changelog
 
+## 0.9.0 — 2026-11-15
+
+- Languages: everything except the READMEs is now English-first with
+  Japanese alongside; Chinese is kept in the README only. Docs 01–07
+  translated to English with Japanese versions in docs/ja/; templates
+  likewise (templates/ja/); agent/PLAN.md + PLAN.ja.md; CONTRIBUTING
+  (+ .ja); this changelog in English; claimboard.py comments and CLI
+  help in English. Skills: SKILL.md is English-only, each skill gains
+  a SKILL.ja.md, and the loader picks by MECH_AGENT_LANG (ja →
+  SKILL.ja.md, fallback SKILL.md). Console UI is bilingual EN/JA
+  (toggle in the status bar, default English, choice persisted);
+  server-generated chat lines are English. Agent package 0.6.0.
+
 ## 0.8.0 — 2026-11-15
 
-- 控制台改 Claude Code / Kilo Code 风格（agent 包 0.5.0）：深色终端
-  美学 + 等宽字体；中央聊天栏改为**转录流**而非气泡——用户消息是
-  `>` 行、成员回复是 `● 名字` 块、正文挂 `⎿` 连接线，认领板的
-  开题/认领/交付/关单事件以**工具调用块**的形式按时间穿插进
-  全体频道；左侧栏改紧凑行列表（状态点 + 编号 + 一行元信息）；
-  底部新增**状态栏**（叶子进度条、票据数、等你定提醒、当前频道
-  的模型）；输入框加斜杠命令 `/run` `/leaf` `/ticket` `/help`。
-  既有功能不变：成员增减与个别模型参数、关系图、会话持久化、
-  Prompt 导航分叉、决定队列。
+- Console restyled after Claude Code / Kilo Code (agent package 0.5.0): dark terminal
+  aesthetics + monospace font; the central chat pane becomes a **transcript stream** instead of bubbles — user messages are
+  `>` lines, member replies are `● name` blocks with the body hanging off a `⎿` connector line, and the claim board's
+  open/claim/deliver/close events are interleaved into the all channel over time as **tool-call blocks**;
+  the left sidebar becomes a compact row list (status dot + ID + one line of metadata);
+  a new **status bar** at the bottom (leaf progress bar, ticket count, decision-queue reminder, current channel's
+  model); the input box gains slash commands `/run` `/leaf` `/ticket` `/help`.
+  Existing features unchanged: adding/removing members and per-member model parameters, relation graph, session persistence,
+  prompt-navigation forking, decision queue.
 
 ## 0.7.2 — 2026-11-15
 
-- 根治「部署了却没变化」：HTTP 服务关掉地址复用
-  （`allow_reuse_address = False`）。此前在 Windows 上第二个实例能
-  和旧服务同时绑住 8765，浏览器随机命中，杀掉一个还有一个；
-  现在第二个实例会直接报错退出，配合 deploy 的端口检查，
-  端口上永远只有一个服务。
+- Root fix for "deployed but nothing changed": the HTTP service turns off address reuse
+  (`allow_reuse_address = False`). Previously on Windows a second instance could
+  bind 8765 at the same time as the old service, and the browser hit them at random — kill one and another remained;
+  now a second instance errors out and exits immediately, and together with deploy's port check,
+  there is only ever one service on the port.
 
 ## 0.7.1 — 2026-11-15
 
-- 防呆：控制台副标题显示 agent 版本号（`/api/state` 带 version），
-  一眼可辨自己看的是不是新版；`deploy.sh` / `deploy.ps1` 启动前
-  检查端口占用——旧服务还占着 8765 时明确报错并给停法，不再出现
-  「部署了却没变化」（新进程抢不到端口、浏览器还连着旧服务）。
+- Foolproofing: the console subtitle shows the agent version (`/api/state` carries `version`),
+  so you can tell at a glance whether you are looking at the new version; `deploy.sh` / `deploy.ps1` check port occupancy before starting —
+  if the old service still holds 8765 they error clearly and say how to stop it, so "deployed but nothing changed" no longer happens
+  (the new process cannot grab the port while the browser is still connected to the old service).
 
 ## 0.7.0 — 2026-11-15
 
-- 控制台按用户反馈重做（agent 包 0.4.0）：
-  - **成员管理**：新增 `registry.py` 成员注册表——UI 里增删 agent、
-    逐个设模型参数（model / base_url / temperature / 启用；API key
-    只存环境变量名），协调者每轮按注册表重建工作队（新成员下轮即上工）。
-  - **关系图**：按真实事件（派工/交付/关单/对话/回复）生成的连线图，
-    边带次数，不再靠猜谁和谁在交互。
-  - **持久会话 + 现代布局**：左侧任务管理栏（等你定/认领板/票据/
-    成员/关系图），中间聊天栏按成员分频道，会话存 `chat.jsonl`
-    持久保存；右侧 **Prompt 导航**列出全部消息节点，点任意节点即
-    定位并设为分叉点，下一条消息从该处长出新分支（parent 指针，
-    原线保留）。叫醒一轮后，各成员会在自己频道里按真实工作记录
-    回复（接真模型时由其模型直接作答）。
-- 测试增至 10 个，全过；deploy.sh 实测新增成员当轮上工、聊天回复、
-  关系图边均正确。
+- Console rebuilt per user feedback (agent package 0.4.0):
+  - **Member management**: new `registry.py` member registry — add/remove agents in the UI,
+    set model parameters per agent (model / base_url / temperature / enabled; API keys
+    are stored only as environment-variable names); the coordinator rebuilds the work team from the registry every round (a new member starts work the next round).
+  - **Relation graph**: a connection graph generated from real events (dispatch/deliver/close/chat/reply),
+    with counts on the edges, instead of guessing who interacts with whom.
+  - **Persistent sessions + modern layout**: left task-management sidebar (decision queue / claim board / tickets /
+    members / relation graph), central chat pane split into per-member channels, sessions persisted in `chat.jsonl`;
+    right-side **prompt navigation** lists all message nodes — click any node to
+    jump to it and set it as a fork point, and the next message grows a new branch from there (parent pointer,
+    original thread preserved). After a wake-up round, each member replies in its own channel from its real work record
+    (with a real model connected, its model answers directly).
+- Tests up to 10, all passing; deploy.sh verified live: a newly added member starts work in the same round, chat replies,
+  and relation-graph edges are all correct.
 
 ## 0.6.2 — 2026-11-15
 
-- 修复 Windows 上无法启动：`board.py` 的文件锁改跨平台（POSIX 用
-  fcntl、Windows 用 msvcrt），此前在 Windows 克隆运行 deploy.ps1 时
-  `import fcntl` 直接崩。新增回归测试（屏蔽 fcntl + 桩 msvcrt 验证
-  Windows 分支可导入可写）。`deploy.ps1` 增加退出码检查，Python
-  步骤失败时不再误报成功。agent 包 0.3.1。
+- Fixed failure to start on Windows: `board.py`'s file lock is now cross-platform (fcntl on POSIX,
+  msvcrt on Windows); previously, cloning on Windows and running deploy.ps1 crashed directly on
+  `import fcntl`. Added a regression test (block fcntl + stub msvcrt to verify
+  the Windows branch imports and writes). `deploy.ps1` gains exit-code checks, so Python
+  step failures no longer report false success. Agent package 0.3.1.
 
 ## 0.6.1 — 2026-11-15
 
-- 三语主 README 与 agent README 补上克隆指令（git clone + cd agent +
-  deploy），主 README 新增「克隆并运行参考实现」一节。
+- The trilingual main README and the agent README gain clone instructions (git clone + cd agent +
+  deploy); the main README gains a "Clone and run the reference implementation" section.
 
 ## 0.6.0 — 2026-11-15
 
-- `agent/` 互动控制台上线（`webapp.py`，agent 包 0.3.0）：五视图
-  （等你定 / 认领板 / 票据 / 成员 / 动态）+ 五个操作（开叶子、建票据、
-  决定票据、给成员发消息、叫醒一轮）。所有写入经 Board/Tickets 同一套
-  规则校验，无直写后门；用户直达消息经 inbox 在叫醒轮送达对应 worker。
-  `serve` 命令改走控制台（新增 `--host`）。
-- 一键部署：`deploy.sh`（Linux/macOS）、`deploy.ps1`（Windows）、
-  `Dockerfile` + `docker-compose.yml`（服务器，状态存 volume）。
-- 测试增至 8 个（含 webapp 的 HTTP 全流程），全过；deploy.sh 实测
-  启动→叫醒一轮（3 证成 / 1 证否 / 1 拆小）→开叶子→停机全通。
+- The `agent/` interactive console ships (`webapp.py`, agent package 0.3.0): five views
+  (decision queue / claim board / tickets / members / activity) + five actions (open a leaf, create a ticket,
+  decide a ticket, message a member, wake a round). All writes are validated through the same Board/Tickets
+  rule set, with no direct-write back door; user direct messages reach the corresponding worker via the inbox in the wake-up round.
+  The `serve` command now goes through the console (new `--host`).
+- One-click deployment: `deploy.sh` (Linux/macOS), `deploy.ps1` (Windows),
+  `Dockerfile` + `docker-compose.yml` (server, state stored on a volume).
+- Tests up to 8 (including the webapp's full HTTP flow), all passing; deploy.sh verified live:
+  start → wake a round (3 proven / 1 refuted / 1 split) → open a leaf → shutdown, all working.
 
 ## 0.5.1 — 2026-11-15
 
-- 新增捆绑 skill `tracker-workflow`（票据/MR/认领板的映射、token 只存
-  server、MCP 的适用边界、关单纪律），skills 共 7 个，测试同步更新。
-- `agent/PLAN.md` 登记两项决定：②票据用外挂 tracker（Gitea 可，
-  TrackerAdapter 接口，GitLab 为第二适配器；服务端走 REST API，
-  MCP 仅供外部对话壳代理）；④UI 为必需且可互动（经 server 校验写入）。
+- New bundled skill `tracker-workflow` (mapping between tickets/MRs/the claim board, tokens stored only on
+  the server, MCP's applicable boundary, closing discipline); 7 skills in total, tests updated accordingly.
+- `agent/PLAN.md` records two decisions: ② tickets use an external tracker (Gitea is fine,
+  a TrackerAdapter interface, GitLab as the second adapter; the server side calls the REST API,
+  MCP only for external conversational-shell agents); ④ the UI is required and must be interactive (writes validated through the server).
 
 ## 0.5.0 — 2026-11-15
 
-- `agent/` 捆绑六个必需 skills（`agent/skills/`，标准 SKILL.md 格式）：
-  leaf-splitting（拆叶）、known-answer-tests（已知答案测试）、
-  counterexample-hunting（反例猎杀）、proof-review（证明复核）、
-  formalization（形式化）、evidence-accounting（证据记账）。
-  新增 `skills.py` 加载器（按角色注入提示词）与 `skills` 命令；
-  agent 包版本升至 0.2.0；测试增至 5 个，全过。
+- `agent/` bundles six required skills (`agent/skills/`, standard SKILL.md format):
+  leaf-splitting, known-answer-tests,
+  counterexample-hunting, proof-review,
+  formalization, evidence-accounting.
+  New `skills.py` loader (injects prompts by role) and a `skills` command;
+  agent package version raised to 0.2.0; tests up to 5, all passing.
 
 ## 0.4.3 — 2026-11-15
 
-- `agent/PLAN.md` 登记用户决定：主场景为**数学研究**（待决③关闭）。
-  v0.2 演示题改为数学命题集；检查器生态向证明检查与符号复算扩展；
-  对话分叉优先级上调、per-worker 代码工作区优先级下调。
+- `agent/PLAN.md` records the user's decision: the primary scenario is **mathematical research** (open item ③ closed).
+  The v0.2 demo set becomes a set of mathematical propositions; the checker ecosystem expands toward proof checking and symbolic recomputation;
+  conversation forking is prioritized up, per-worker code workspaces are prioritized down.
 
 ## 0.4.2 — 2026-11-15
 
-- 新增 `agent/PLAN.md`：v0.2–v0.5 计划书（Swarm 式协作对标 Antigravity /swarm、
-  Claude Code 式对话与任务分支 UI、Docker 服务端部署；含分期验收与
-  「对话可分支、台账不可分支」的硬取舍）。三份 agent README 加路线图链接。
+- New `agent/PLAN.md`: the v0.2–v0.5 plan (Swarm-style collaboration benchmarked against Antigravity /swarm,
+  Claude Code-style conversation and task-branching UI, Docker server deployment; includes phased acceptance and
+  the hard trade-off "conversations may branch, the ledger may not"). The three agent READMEs gain roadmap links.
 
 ## 0.4.1 — 2026-11-15
 
-- 三语文档：主 README 新增英文版 `README.en.md` 与日文版 `README.ja.md`；
-  `agent/README` 补齐简体中文版与日文版；四份 README 顶部互加语言切换链接。
-  （docs/ 正文的三语化为后续工作。）
+- Trilingual documents: the main README gains an English edition `README.en.md` and a Japanese edition `README.ja.md`;
+  `agent/README` gains Simplified Chinese and Japanese editions; the four READMEs cross-link language switches at the top.
+  (Trilingual editions of the docs/ body texts are future work.)
 
 ## 0.4.0 — 2026-11-15
 
-- 新增 `agent/`：整套机制的可运行参考实现（deep-agent 形态，零依赖标准库）：
-  认领板三态关单、作者/复核分离、协调者叫醒循环、可插拔模型后端
-  （mock 免 key 演示 + OpenAI 兼容接口）、人类规模票据与快照导出、
-  只读可视化看板；附演示题（一次跑通证成/证否/拆小）与单元测试。
+- New `agent/`: a runnable reference implementation of the whole mechanism (deep-agent form, zero-dependency standard library):
+  claim-board three-state closing, author/reviewer separation, coordinator wake-up loop, pluggable model backends
+  (mock key-free demo + OpenAI-compatible interface), human-scale tickets with snapshot export,
+  read-only visualization board; with demo problems (one run through proven/refuted/split) and unit tests.
 
 ## 0.3.0 — 2026-11-15
 
-- 新增 `docs/07-tracker-and-snapshots.md`：票据与快照
-  （人类规模工作迁入本地部署 tracker 的理由；状态以快照回仓库以保住
-  开机读文件与备份纪律；机器/人类两层分开；关单单点的失败教训；试点对账）。
+- New `docs/07-tracker-and-snapshots.md`: tickets and snapshots
+  (why human-scale work moves into a locally deployed tracker; state returns to the repo as snapshots to preserve
+  the boot-by-reading-files and backup disciplines; machine/human two layers kept separate; the failure lesson of single-point closing; pilot reconciliation).
 
 ## 0.2.0 — 2026-11-15
 
-- 新增 `docs/05-uncertainty-and-tool-invention.md`：研究不确定性的方法与工具发明流水线
-  （可识别性先行、最小合成世界、形式化放大、负结果记账）。
-- 新增 `docs/06-mechanism-assurance.md`：机制的自我保证
-  （活性 / 正确性 / 六种故障恢复 / 防腐与降级模式 / 每周自检表）。
+- New `docs/05-uncertainty-and-tool-invention.md`: methods for research uncertainty and the tool-invention pipeline
+  (identifiability first, minimal synthetic worlds, formalization amplification, negative-result accounting).
+- New `docs/06-mechanism-assurance.md`: the mechanism's self-assurance
+  (liveness / correctness / six failure recoveries / anti-corrosion and degradation modes / weekly self-check table).
 
 ## 0.1.0 — 2026-11-15
 
-- 首个公开版本：从一个私有研究项目的协作实践中抽离机制层。
-- README（中英）、哲学（四块 + 根本要求三道死关）、架构（角色与信息流）、
-  工作流（命题 → 小叶 → 认领板 → 交付块 → 复核 → 收口）、证据纪律（分层与五条硬规则）。
-- 模板五份：认领卡、交付块、预登记页、工具卡、每日一页。
-- 参考实现：`reference/claimboard.py`（只追加日志 + 三值结局强制）。
+- First public release: the mechanism layer extracted from a private research project's collaboration practice.
+- README (Chinese and English), philosophy (four blocks + the fundamental requirements' three deadly gates), architecture (roles and information flow),
+  workflow (proposition → leaf → claim board → delivery block → review → closing), evidence discipline (layering and five hard rules).
+- Five templates: claim card, delivery block, preregistration page, tool card, daily page.
+- Reference implementation: `reference/claimboard.py` (append-only log + three-valued outcome enforcement).
