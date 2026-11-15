@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.14.1 — 2026-11-15
+
+- Chapter 09 gained a closing section, "What a Document Cannot
+  Install" (English and Japanese): installing the chapter transfers
+  the form, not three load-bearing ingredients — externality is a
+  position, not a role-play an insider can simulate; the standard's
+  authority lives in a live principal, not on the page; and the
+  trace stock starts at zero, so a greenfield installation spends
+  its first months accumulating stock rather than harvesting.
+  Corollary: the mechanism minimizes dependence on the principal's
+  live attention but cannot zero it; what cannot be documented is
+  reserved for live things — a genuinely external auditor on a real
+  cadence, and a principal who still occasionally asks.
+
 ## 0.14.0 — 2026-11-15
 
 - New chapter `docs/09-self-correction.md` (with Japanese version in
