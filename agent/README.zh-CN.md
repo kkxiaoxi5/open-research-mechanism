@@ -30,6 +30,8 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://12
 一键部署：
 
 ```bash
+git clone https://github.com/kkxiaoxi5/open-research-mechanism.git
+cd open-research-mechanism/agent
 ./deploy.sh            # Linux/macOS：初始化 + 种子数据 + 启动控制台
 .\deploy.ps1           # Windows PowerShell
 docker compose up -d   # 服务器部署（状态存 volume）

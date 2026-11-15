@@ -42,6 +42,18 @@
 | [reference/claimboard.py](reference/claimboard.py) | 認領ボードの最小参考実装（追記専用ログ＋三値結末の検証） |
 | [agent/](agent/) | 機構全体の実行可能な参考実装（依存ゼロの deep agent）：小葉への分解、復核側の再計算、三態での関単、チケット＋スナップショット、読み取り専用ダッシュボード；モデルバックエンドは差し替え可能、API キーなしでデモが走る |
 
+## クローンして参考実装を動かす
+
+```bash
+git clone https://github.com/kkxiaoxi5/open-research-mechanism.git
+cd open-research-mechanism/agent
+./deploy.sh            # Linux/macOS（Windows は .\deploy.ps1、サーバーは docker compose up -d）
+```
+
+`http://127.0.0.1:8765` を開くと互動コンソール（決定待ち / 認領ボード /
+チケット / メンバー / 動態）。依存ゼロ、Python ≥ 3.11 のみ。デモ後端は
+キー不要、実モデル接続は `agent/README.md` を参照。
+
 ## クイックスタート
 
 1. `docs/01-philosophy.md` を読み、「根本要求」を自分のプロジェクト版に書き換えて独立ページにする。

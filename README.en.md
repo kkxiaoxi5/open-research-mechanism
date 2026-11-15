@@ -42,6 +42,19 @@ A single AI session doing research naturally slides into four failure modes
 | [reference/claimboard.py](reference/claimboard.py) | A minimal claim-board implementation (append-only log + three-outcome validation) |
 | [agent/](agent/) | A runnable reference implementation of the whole mechanism (zero-dependency deep agent): decomposition into leaves, reviewer recomputation, three-outcome closing, tickets + snapshots, a read-only dashboard; pluggable model backends, demo runs with no API key |
 
+## Clone and run the reference implementation
+
+```bash
+git clone https://github.com/kkxiaoxi5/open-research-mechanism.git
+cd open-research-mechanism/agent
+./deploy.sh            # Linux/macOS (Windows: .\deploy.ps1; server: docker compose up -d)
+```
+
+Open `http://127.0.0.1:8765` for the interactive console (decision queue /
+claim board / tickets / members / activity). Zero dependencies, Python
+≥ 3.11 only; the demo backend needs no key — see `agent/README.md` for
+plugging in a real model.
+
 ## Quick start
 
 1. Read `docs/01-philosophy.md` and write your own project's "root requirements" page.

@@ -32,6 +32,8 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://12
 One-click deployment:
 
 ```bash
+git clone https://github.com/kkxiaoxi5/open-research-mechanism.git
+cd open-research-mechanism/agent
 ./deploy.sh            # Linux/macOS: init + seed + start the console
 .\deploy.ps1           # Windows PowerShell
 docker compose up -d   # server deployment (state on a volume)

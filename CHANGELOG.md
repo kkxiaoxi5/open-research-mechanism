@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1 — 2026-11-15
+
+- 三语主 README 与 agent README 补上克隆指令（git clone + cd agent +
+  deploy），主 README 新增「克隆并运行参考实现」一节。
+
 ## 0.6.0 — 2026-11-15
 
 - `agent/` 互动控制台上线（`webapp.py`，agent 包 0.3.0）：五视图
