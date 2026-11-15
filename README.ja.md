@@ -40,6 +40,7 @@
 | [docs/05-uncertainty-and-tool-invention.md](docs/05-uncertainty-and-tool-invention.md) | 不確実性の研究：なぜ古典的確率論はこの対象に合わないか；まず識別可能性の境界を証明し、それから新しい数学的道具を発明する流水線 |
 | [docs/06-mechanism-assurance.md](docs/06-mechanism-assurance.md) | 機構の自己保証：活性（定時ウェイクアップ／漏接検出）、正確性、六種の故障からの回復、防腐と縮退モード |
 | [docs/07-tracker-and-snapshots.md](docs/07-tracker-and-snapshots.md) | チケットとスナップショット：人間規模の作業をローカルなトラッカーへ移す理由と、状態をスナップショットとして倉庫へ戻す必然性；機械規模と人間規模の階層化；関単単一点の教訓 |
+| [docs/08-the-unquantifiable-layer.md](docs/08-the-unquantifiable-layer.md) | 量化できない層：統計学の管轄境界；公平ゾーン（証明された未知はリスクゾーンではなく設計空間）；変換ループと加速の置き場所；判断の信用台帳と定義リスクの賭け；この市場の解剖学からゼロで設計する土办法（実務的方法）；ダッシュボードのない層の飢餓の法則 |
 | [templates/](templates/) | そのまま使える雛形：認領カード、交付ブロック、事前登録ページ、道具カード、毎日の一頁 |
 | [reference/claimboard.py](reference/claimboard.py) | 認領ボードの最小参考実装（追記専用ログ＋三値結末の検証） |
 | [agent/](agent/) | 機構全体の実行可能な参考実装（依存ゼロの deep agent）：小葉への分解、復核側の再計算、三態での関単、チケット＋スナップショット、読み取り専用ダッシュボード；モデルバックエンドは差し替え可能、API キーなしでデモが走る |

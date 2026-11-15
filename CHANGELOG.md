@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.13.0 — 2026-11-15
+
+- New chapter `docs/08-the-unquantifiable-layer.md` (with Japanese
+  version in `docs/ja/`): which parts of a problem statistics has
+  jurisdiction over, and what to do with the rest. Contents: the
+  jurisdiction of statistics (rigor as a selection bias against the
+  non-repeatable layer); fair zones — a proved symmetric unknown is
+  a design space, not a risk zone, and impossibility results are
+  booked as surveyed land; the conversion loop (intuition →
+  structural proposition → scorable claim → verdict) and why
+  acceleration belongs first to its front half; operating what
+  stays unquantifiable (a judgment credit ledger, defined-risk
+  bets, a two-sleeve funding rule); native pragmatic methods
+  designed from the market's own anatomy, each shipping with its
+  failure design, regime tags, and shelf life; and the starvation
+  law — a work layer without a dashboard starves next to any layer
+  with a closed loop. Docs-only release; the agent package is
+  unchanged.
+
 ## 0.12.0 — 2026-11-15
 
 - Console: light theme + operability pass (agent package 0.9.0).
