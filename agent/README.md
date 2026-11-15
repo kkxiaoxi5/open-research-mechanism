@@ -17,7 +17,7 @@ an intranet machine — can run it end to end.
 | `orchestrator.py` | One wake-up cycle: reconcile expired leases and stuck leaves → dispatch → review → snapshot. |
 | `backend.py` | Pluggable model backends: a deterministic mock (runs the demo with no keys) and an OpenAI-compatible client for a real model, public or intranet. |
 | `tracker.py` | Human-scale tickets (tasks / questions / decisions, with a decision queue) and **snapshot export** back into files — tracker state never lives only inside a service. |
-| `dashboard.py` | Read-only web dashboard: decision queue first, then the board, tickets, and closed-leaf evidence. It has no write path. |
+| `webapp.py` | The interactive console (the user's operating surface): decision queue, claim board, tickets, members, activity — plus opening leaves, deciding tickets, messaging members and running a wake-up cycle. Every action goes through the same Board/Tickets rules as the agents; nothing writes state files directly. `dashboard.py` remains as a static snapshot renderer. |
 | `skills/` + `skills.py` | Seven bundled playbooks (leaf splitting, known-answer tests, counterexample hunting, proof review, formalization, evidence accounting, tracker workflow), loaded by role into each agent's prompt — the working habits ship with the machinery. List them with the `skills` command. |
 
 ## Run the demo (no keys, one minute)
@@ -28,6 +28,14 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state init
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state seed-demo
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state run
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://127.0.0.1:8765
+
+One-click deployment:
+
+```bash
+./deploy.sh            # Linux/macOS: init + seed + start the console
+.\deploy.ps1           # Windows PowerShell
+docker compose up -d   # server deployment (state on a volume)
+```
 ```
 
 The demo seeds three leaves so a single cycle exercises all three

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0 — 2026-11-15
+
+- `agent/` 互动控制台上线（`webapp.py`，agent 包 0.3.0）：五视图
+  （等你定 / 认领板 / 票据 / 成员 / 动态）+ 五个操作（开叶子、建票据、
+  决定票据、给成员发消息、叫醒一轮）。所有写入经 Board/Tickets 同一套
+  规则校验，无直写后门；用户直达消息经 inbox 在叫醒轮送达对应 worker。
+  `serve` 命令改走控制台（新增 `--host`）。
+- 一键部署：`deploy.sh`（Linux/macOS）、`deploy.ps1`（Windows）、
+  `Dockerfile` + `docker-compose.yml`（服务器，状态存 volume）。
+- 测试增至 8 个（含 webapp 的 HTTP 全流程），全过；deploy.sh 实测
+  启动→叫醒一轮（3 证成 / 1 证否 / 1 拆小）→开叶子→停机全通。
+
 ## 0.5.1 — 2026-11-15
 
 - 新增捆绑 skill `tracker-workflow`（票据/MR/认领板的映射、token 只存

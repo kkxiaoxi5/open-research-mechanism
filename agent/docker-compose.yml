@@ -1,0 +1,16 @@
+# One-click server deployment:  docker compose up -d
+# Then open http://localhost:8765 — state persists in the mech-state volume.
+services:
+  agent:
+    build: .
+    ports:
+      - "8765:8765"
+    volumes:
+      - mech-state:/state
+    # To use a real model backend, uncomment and fill in:
+    # environment:
+    #   MECH_AGENT_BASE_URL: "https://your-endpoint/v1"
+    #   MECH_AGENT_API_KEY: "..."
+    #   MECH_AGENT_MODEL: "..."
+volumes:
+  mech-state:

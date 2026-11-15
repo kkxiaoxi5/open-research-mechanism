@@ -16,7 +16,7 @@
 | `orchestrator.py` | ウェイクアップ一巡：期限切れリースと行き詰まり葉の照合 → 派遣 → 復核 → スナップショット書き出し。 |
 | `backend.py` | 差し替え可能なモデルバックエンド：決定論的なモック（キーなしでデモが走る）と、OpenAI 互換クライアント（公網・内網どちらのモデルにも接続可）。 |
 | `tracker.py` | 人間規模のチケット（タスク／質問／決定、「決定待ち」キュー付き）と**スナップショット書き出し**——チケットの状態がサービスの中だけに住むことはない。 |
-| `dashboard.py` | 読み取り専用の可視化ダッシュボード：第一画面は決定待ちキュー、続いて認領ボード、チケット、閉じた葉の証拠集計。書き込み口は存在しない。 |
+| `webapp.py` | 互動コンソール（ユーザーの操作面）：決定待ちキュー、認領ボード、チケット、メンバー、動態の五ビューに加え、葉を開く、票据を決定する、メンバーへメッセージ、叫醒一輪の実行ができる。全操作はエージェントと同じ Board/Tickets 規則を通して書き込まれ、状態ファイルへの直書きの抜け道はない。`dashboard.py` は静的スナップショット描画として残る。 |
 | `skills/` + `skills.py` | 捆绑された七つのプレイブック（葉の分解、既知答案テスト、反例ハンティング、証明復核、形式化、証拠記賬、チケット工作流）。役割ごとに各エージェントのプロンプトへ読み込まれる——仕事の習慣が機械と一緒に出荷される。`skills` コマンドで一覧できる。 |
 
 ## デモを動かす（キー不要、1 分）
@@ -27,6 +27,14 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state init
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state seed-demo
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state run
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://127.0.0.1:8765
+
+ワンクリック配備：
+
+```bash
+./deploy.sh            # Linux/macOS：初期化 + シード + コンソール起動
+.\deploy.ps1           # Windows PowerShell
+docker compose up -d   # サーバー配備（状態は volume に保存）
+```
 ```
 
 デモは三枚の葉を植え、一巡で三つの結末すべてを通す：一つは正解で

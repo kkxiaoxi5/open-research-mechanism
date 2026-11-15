@@ -1,0 +1,6 @@
+__pycache__
+*.pyc
+mech-state
+.mech-agent.pid
+mech-agent.log
+tests

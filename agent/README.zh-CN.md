@@ -15,7 +15,7 @@
 | `orchestrator.py` | 一轮叫醒：对账过期租约与卡住叶 → 派发 → 复核 → 导出快照。 |
 | `backend.py` | 可插拔模型后端：确定性假后端（无 key 跑通演示）与 OpenAI 兼容客户端（接公网或内网模型）。 |
 | `tracker.py` | 人类规模票据（任务 / 质问 / 决定，带「等决定」队列）与**快照导出**——票据状态永不只活在一个服务里。 |
-| `dashboard.py` | 只读可视化看板：等决定队列在第一屏，其后是认领板、票据、已关叶子的证据汇总。它没有任何写入口。 |
+| `webapp.py` | 互动控制台（用户的操作面）：等你定、认领板、票据、成员、动态五视图，外加开叶子、决定票据、给成员发消息、叫醒一轮。所有操作都经与代理同一套 Board/Tickets 规则写入，没有任何直写状态文件的后门。`dashboard.py` 保留为静态快照渲染。 |
 | `skills/` + `skills.py` | 七个捆绑 playbook（拆叶、已知答案测试、反例猎杀、证明复核、形式化、证据记账、票据工作流），按角色装入各代理的提示词——工作习惯和机器一起发货。用 `skills` 命令可列出。 |
 
 ## 跑演示（无 key，一分钟）
@@ -26,6 +26,14 @@ PYTHONPATH=src python -m mechanism_agent --home ./mech-state init
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state seed-demo
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state run
 PYTHONPATH=src python -m mechanism_agent --home ./mech-state serve   # http://127.0.0.1:8765
+
+一键部署：
+
+```bash
+./deploy.sh            # Linux/macOS：初始化 + 种子数据 + 启动控制台
+.\deploy.ps1           # Windows PowerShell
+docker compose up -d   # 服务器部署（状态存 volume）
+```
 ```
 
 演示种下三片叶子，一轮跑完三种结局：一个答案正确（**证成**），

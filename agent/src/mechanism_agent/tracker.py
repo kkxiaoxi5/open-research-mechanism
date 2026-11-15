@@ -67,6 +67,17 @@ class Tickets:
                 return row
         raise KeyError(ticket_id)
 
+    def comment(self, ticket_id: int, by: str, text: str) -> dict:
+        rows = self._load()
+        for row in rows:
+            if row["id"] == ticket_id:
+                row.setdefault("history", []).append(
+                    {"ts": time.time(), "event": f"comment by {by}",
+                     "reason": text})
+                self._save(rows)
+                return row
+        raise KeyError(ticket_id)
+
     def all(self) -> list[dict]:
         return self._load()
 

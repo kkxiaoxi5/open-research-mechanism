@@ -89,10 +89,11 @@ def cmd_skills() -> None:
               f"[roles: {', '.join(s.get('roles', []))}]")
 
 
-def cmd_serve(home: str, port: int) -> None:
-    from .dashboard import serve
-    print(f"dashboard on http://127.0.0.1:{port} (read-only)")
-    serve(_paths(home)["snapshot"], port=port)
+def cmd_serve(home: str, port: int, host: str = "127.0.0.1") -> None:
+    from .webapp import serve
+    print(f"console on http://{host}:{port} (interactive; "
+          f"trusted networks only)")
+    serve(home, host=host, port=port)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -106,6 +107,7 @@ def main(argv: list[str] | None = None) -> None:
     sub.add_parser("skills")
     sv = sub.add_parser("serve")
     sv.add_argument("--port", type=int, default=8765)
+    sv.add_argument("--host", default="127.0.0.1")
     args = ap.parse_args(argv)
     if args.cmd == "init":
         cmd_init(args.home)
@@ -118,7 +120,7 @@ def main(argv: list[str] | None = None) -> None:
     elif args.cmd == "skills":
         cmd_skills()
     elif args.cmd == "serve":
-        cmd_serve(args.home, args.port)
+        cmd_serve(args.home, args.port, args.host)
 
 
 if __name__ == "__main__":
