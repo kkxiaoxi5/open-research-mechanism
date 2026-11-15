@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.14.0 — 2026-11-15
+
+- New chapter `docs/09-self-correction.md` (with Japanese version in
+  `docs/ja/`): the conditions that make a team revise itself.
+  Contents: a rate equation for self-correction (standard clarity ×
+  feedback frequency × inverse cost of admitting × license to
+  revise); six installable conditions — a forced three-line trace
+  format in every delivery block, a written citable standard, a
+  standing external audit channel working from cited evidence, an
+  institutionalized trigger (the daily line "what did I get wrong
+  today, and who caught it"), a written license to iterate in
+  steps, and locatable errors via explicit rule scopes; two
+  cold-water clauses (a fluent reflection is not a result;
+  self-reports are reconstructions, not introspection); and the
+  mechanism's own failure modes (the "none" streak, audit decay,
+  license rot). Docs-only release; the agent package is unchanged.
+
 ## 0.13.0 — 2026-11-15
 
 - New chapter `docs/08-the-unquantifiable-layer.md` (with Japanese

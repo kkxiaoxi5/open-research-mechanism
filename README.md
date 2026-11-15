@@ -43,6 +43,7 @@ authorship and review, and an evidence ledger that survives scaling.
 | [docs/06-mechanism-assurance.md](docs/06-mechanism-assurance.md) | 机制的自我保证：活性（定时叫醒/漏接检测）、正确性、六种故障的恢复、防腐与降级模式 |
 | [docs/07-tracker-and-snapshots.md](docs/07-tracker-and-snapshots.md) | 票据与快照：人类规模的工作迁入本地 tracker，为什么必须配快照回仓库；机器规模与人类规模的分层；关单单点的教训 |
 | [docs/08-the-unquantifiable-layer.md](docs/08-the-unquantifiable-layer.md) | 不可量化层：统计学的管辖边界；公平区（被证明的未知是设计空间而非风险区）；转化回路与加速应放的位置；判断信用账与定义风险下注；按本市场解剖学从 0 设计的土办法；无仪表盘的层会饿死这一定律 |
+| [docs/09-self-correction.md](docs/09-self-correction.md) | 自我修正：速率公式（标准明确度 × 反馈频率 × 认错成本之逆 × 改订许可）；六个可安装的条件——强制三行留痕、成文可引用的标准、外部审计通道、制度化的每日触发行、分步迭代的许可、可定位的错误；为什么反思写得顺不等于改对了 |
 | [templates/](templates/) | 可直接抄用的模板：认领卡、交付块、预登记页、工具卡、每日一页 |
 | [reference/claimboard.py](reference/claimboard.py) | 认领板的最小参考实现（只追加日志 + 三值结局校验） |
 | [agent/](agent/) | 整套机制的可运行参考实现（zero-dependency deep agent）：拆题派叶、复核复算、三态关单、票据与快照、互动控制台；模型后端可插拔，免 key 可跑演示 |
