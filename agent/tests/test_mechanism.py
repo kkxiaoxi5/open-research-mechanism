@@ -73,7 +73,8 @@ class BundledSkills(unittest.TestCase):
         names = {s["name"] for s in skills}
         self.assertEqual(names, {"leaf-splitting", "known-answer-tests",
                                  "counterexample-hunting", "proof-review",
-                                 "formalization", "evidence-accounting"})
+                                 "formalization", "evidence-accounting",
+                                 "tracker-workflow"})
         self.assertTrue(for_role("reviewer"))
         self.assertIn("proof-review", prompt_block("reviewer"))
 

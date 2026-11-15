@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 — 2026-11-15
+
+- 新增捆绑 skill `tracker-workflow`（票据/MR/认领板的映射、token 只存
+  server、MCP 的适用边界、关单纪律），skills 共 7 个，测试同步更新。
+- `agent/PLAN.md` 登记两项决定：②票据用外挂 tracker（Gitea 可，
+  TrackerAdapter 接口，GitLab 为第二适配器；服务端走 REST API，
+  MCP 仅供外部对话壳代理）；④UI 为必需且可互动（经 server 校验写入）。
+
 ## 0.5.0 — 2026-11-15
 
 - `agent/` 捆绑六个必需 skills（`agent/skills/`，标准 SKILL.md 格式）：
