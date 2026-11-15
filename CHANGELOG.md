@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.0 — 2026-11-15
+
+- Console: light theme + operability pass (agent package 0.9.0).
+  The dark terminal skin made controls hard to see and harder to
+  click; the layout and supervision model stay, the chrome is now
+  Anthropic's light palette (warm paper #faf9f5, white panels, clay
+  orange accent) with real buttons everywhere — filled primary,
+  outlined secondary, ≥26–32px targets, hover states, segmented
+  tabs and language switch, focus rings on the composer. UI chrome
+  type is sans; the transcript keeps monospace. Decision dialogs,
+  expandable tool lines, persistent result lines, steering queue,
+  and keyboard shortcuts all behave as in 0.11.0.
+
 ## 0.11.0 — 2026-11-15
 
 - Console: from imitating Claude Code's *look* to imitating its
