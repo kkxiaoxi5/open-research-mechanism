@@ -613,6 +613,15 @@ def make_handler(app: App):
     return Handler
 
 
+class _Server(ThreadingHTTPServer):
+    # Never silently share the port: with address reuse on, a second
+    # instance binds successfully on Windows and the browser keeps
+    # hitting whichever process — the classic "deployed but nothing
+    # changed". Fail loudly instead.
+    allow_reuse_address = False
+    daemon_threads = True
+
+
 def serve(home: str, host: str = "127.0.0.1", port: int = 8765) -> None:
     app = App(home)
-    ThreadingHTTPServer((host, port), make_handler(app)).serve_forever()
+    _Server((host, port), make_handler(app)).serve_forever()
