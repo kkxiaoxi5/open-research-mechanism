@@ -27,6 +27,11 @@ if sys.version_info < (3, 11):
     sys.exit("Python >= 3.11 required, found " + sys.version.split()[0])
 EOF
 
+if python3 -c "import socket,sys; s=socket.socket(); sys.exit(0 if s.connect_ex(('127.0.0.1', $PORT)) == 0 else 1)"; then
+  echo "port $PORT is already in use — stop the old console first: ./deploy.sh stop"
+  exit 1
+fi
+
 export PYTHONPATH="$PWD/src"
 if [ ! -f "$HOME_DIR/board.jsonl" ]; then
   python3 -m mechanism_agent --home "$HOME_DIR" init

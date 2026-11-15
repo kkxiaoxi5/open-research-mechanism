@@ -25,6 +25,13 @@ $py = Get-Command python -ErrorAction SilentlyContinue
 if (-not $py) { $py = Get-Command py -ErrorAction SilentlyContinue }
 if (-not $py) { Write-Host "python not found (need >= 3.11)"; exit 1 }
 
+$listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+if ($listener) {
+    Write-Host "port $Port is already in use by process $($listener.OwningProcess) — stop the old console first:"
+    Write-Host "  .\deploy.ps1 -Stop    (or: Stop-Process -Id $($listener.OwningProcess))"
+    exit 1
+}
+
 $env:PYTHONPATH = Join-Path $PWD "src"
 function Invoke-Py {
     param([string[]]$Args_)

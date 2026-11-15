@@ -24,6 +24,7 @@ import os
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from . import __version__
 from .agents import CHECKERS, Reviewer, Worker
 from .board import Board
 from .chat import ChatLog
@@ -146,6 +147,7 @@ class App:
                 for ev in self.board._events()]
         feed.sort(key=lambda e: e["ts"], reverse=True)
         return {
+            "version": __version__,
             "counts": {
                 "leaves_open": sum(1 for l in leaves.values()
                                    if l["status"] != "closed"),
@@ -366,7 +368,7 @@ svg text{font-size:10px;fill:var(--ink)}
 </style></head><body>
 <aside>
   <h1>mechanism-agent</h1>
-  <div class="sub">研究机制控制台 · 写入经 Board/Tickets 规则校验</div>
+  <div class="sub">研究机制控制台 · 写入经 Board/Tickets 规则校验<span id="ver"></span></div>
   <div class="counts"><span>叶子开 <b id="c-open">–</b></span>
   <span>已关 <b id="c-closed">–</b></span><span>票据 <b id="c-tix">–</b></span>
   <span>等你定 <b id="c-dec">–</b></span></div>
@@ -434,6 +436,7 @@ async function api(path,body){const r=await fetch(path,{method:body?"POST":"GET"
 function thread(){return S.chat.filter(m=>m.channel===channel||m.channel==="all")}
 function render(){
   if(!S)return;
+  $("ver").textContent=S.version?" · agent v"+S.version:"";
   $("c-open").textContent=S.counts.leaves_open;$("c-closed").textContent=S.counts.leaves_closed;
   $("c-tix").textContent=S.counts.tickets_open;$("c-dec").textContent=S.counts.decisions;
   $("stabs").innerHTML=[["tasks","任务"],["agents","成员"],["graph","关系图"]].map(([k,v])=>
