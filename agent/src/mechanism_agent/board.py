@@ -11,11 +11,30 @@ any snapshot is a cache. All writes go through one locked append.
 """
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import time
 import uuid
+
+try:  # POSIX file lock
+    import fcntl
+
+    def _lock(fh) -> None:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+
+    def _unlock(fh) -> None:
+        fcntl.flock(fh, fcntl.LOCK_UN)
+
+except ImportError:  # Windows file lock
+    import msvcrt
+
+    def _lock(fh) -> None:
+        fh.seek(0)
+        msvcrt.locking(fh.fileno(), msvcrt.LK_LOCK, 1)
+
+    def _unlock(fh) -> None:
+        fh.seek(0)
+        msvcrt.locking(fh.fileno(), msvcrt.LK_UNLCK, 1)
 
 OUTCOMES = ("proven", "refuted", "split")
 STATUSES = ("open", "claimed", "delivered", "closed")
@@ -38,11 +57,13 @@ class Board:
         record.setdefault("ts", _now())
         record.setdefault("rid", uuid.uuid4().hex[:12])
         with open(self.path, "a+", encoding="utf-8") as fh:
-            fcntl.flock(fh, fcntl.LOCK_EX)
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-            fh.flush()
-            os.fsync(fh.fileno())
-            fcntl.flock(fh, fcntl.LOCK_UN)
+            _lock(fh)
+            try:
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
+            finally:
+                _unlock(fh)
         return record
 
     def _events(self) -> list[dict]:

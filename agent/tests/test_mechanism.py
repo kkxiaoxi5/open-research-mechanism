@@ -66,6 +66,36 @@ class FullLoop(unittest.TestCase):
         self.assertEqual(len(tickets.decision_queue()), 1)
 
 
+class WindowsLockFallback(unittest.TestCase):
+    def test_board_works_without_fcntl(self):
+        """Regression: board.py must import and append on Windows,
+        where fcntl does not exist (msvcrt branch). Simulated by
+        blocking fcntl and stubbing msvcrt."""
+        import os
+        import subprocess
+        import sys
+        import tempfile
+        stub = tempfile.mkdtemp()
+        with open(os.path.join(stub, "msvcrt.py"), "w") as fh:
+            fh.write("LK_LOCK = 1\nLK_UNLCK = 2\n"
+                     "def locking(fileno, mode, nbytes):\n    pass\n")
+        code = (
+            "import sys; sys.modules['fcntl'] = None\n"
+            "from mechanism_agent.board import Board\n"
+            "import tempfile, os\n"
+            "b = Board(os.path.join(tempfile.mkdtemp(), 'b.jsonl'))\n"
+            "b.open_leaf('W1', 'windows lock check')\n"
+            "assert b.leaves()['W1']['status'] == 'open'\n"
+            "print('windows-branch OK')\n")
+        env = dict(os.environ)
+        src = os.path.join(os.path.dirname(__file__), "..", "src")
+        env["PYTHONPATH"] = os.pathsep.join([stub, os.path.abspath(src)])
+        r = subprocess.run([sys.executable, "-c", code],
+                           capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("windows-branch OK", r.stdout)
+
+
 class BundledSkills(unittest.TestCase):
     def test_skills_discover_and_parse(self):
         from mechanism_agent.skills import discover, for_role, prompt_block

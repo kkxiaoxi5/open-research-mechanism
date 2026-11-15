@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2 — 2026-11-15
+
+- 修复 Windows 上无法启动：`board.py` 的文件锁改跨平台（POSIX 用
+  fcntl、Windows 用 msvcrt），此前在 Windows 克隆运行 deploy.ps1 时
+  `import fcntl` 直接崩。新增回归测试（屏蔽 fcntl + 桩 msvcrt 验证
+  Windows 分支可导入可写）。`deploy.ps1` 增加退出码检查，Python
+  步骤失败时不再误报成功。agent 包 0.3.1。
+
 ## 0.6.1 — 2026-11-15
 
 - 三语主 README 与 agent README 补上克隆指令（git clone + cd agent +

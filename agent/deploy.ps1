@@ -26,9 +26,17 @@ if (-not $py) { $py = Get-Command py -ErrorAction SilentlyContinue }
 if (-not $py) { Write-Host "python not found (need >= 3.11)"; exit 1 }
 
 $env:PYTHONPATH = Join-Path $PWD "src"
+function Invoke-Py {
+    param([string[]]$Args_)
+    & python @Args_
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "command failed (exit $LASTEXITCODE): python $($Args_ -join ' ')"
+        exit $LASTEXITCODE
+    }
+}
 if (-not (Test-Path (Join-Path $HomeDir "board.jsonl"))) {
-    python -m mechanism_agent --home $HomeDir init
-    python -m mechanism_agent --home $HomeDir seed-demo
+    Invoke-Py "-m", "mechanism_agent", "--home", $HomeDir, "init"
+    Invoke-Py "-m", "mechanism_agent", "--home", $HomeDir, "seed-demo"
     Write-Host "seeded demo data (leaves D1-D3, two tickets)"
 }
 $p = Start-Process -PassThru -NoNewWindow python -ArgumentList `
