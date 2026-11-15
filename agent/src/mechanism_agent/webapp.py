@@ -1,11 +1,16 @@
 """Interactive web console for mechanism-agent.
 
 The user's operating surface (PLAN decision: the UI is a required,
-interactive part of the system). Layout: a task-management sidebar
-(decision queue / claim board / tickets / agent management / relation
-graph), a persistent chat pane with per-agent channels, and a prompt
-navigator that selects any message as a fork point so a conversation
-can branch from any position.
+interactive part of the system). Styled after terminal agent tools
+(Claude Code / Kilo Code): a dark transcript instead of chat bubbles —
+user lines start with ``>``, agent blocks with a status dot and a
+``⎿`` result connector, and board events (open/claim/deliver/close)
+render as tool-call blocks interleaved in the main channel. Around
+the transcript: a task sidebar (decision queue / claim board /
+tickets / agent management / relation graph), a prompt navigator
+that selects any message as a fork point, a composer with slash
+commands (/run, /leaf, /ticket), and a status bar (leaf progress,
+open tickets, current channel's model).
 
 Discipline is preserved: the web layer never writes state files
 directly. Task actions go through Board / Tickets; agent management
@@ -297,84 +302,131 @@ PAGE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>mechanism-agent 控制台</title>
 <style>
-:root{--bg:#eef0f3;--panel:#fff;--line:#e0e4ea;--ink:#1b2330;--dim:#68707d;
---green:#177245;--red:#b3372f;--amber:#9a6a00;--blue:#2456a6;--purple:#6a4fa3}
+:root{--bg:#0e0e10;--panel:#16171a;--panel2:#1c1d21;--line:#2a2b31;
+--ink:#e6e6e3;--dim:#8a8f98;--faint:#5c6068;--accent:#d97757;
+--green:#4caf7d;--red:#e5534b;--amber:#d29922;--blue:#58a6ff;--purple:#b083f0;
+--mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,"Microsoft YaHei",monospace}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);display:grid;
-grid-template-columns:344px 1fr 236px;height:100vh;
-font:14px/1.55 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+grid-template-columns:308px 1fr 224px;grid-template-rows:1fr 26px;height:100vh;
+font:13.5px/1.6 var(--mono)}
 aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;
-padding:14px 14px 20px}
-aside h1{font-size:16px;margin:0}
-.sub{color:var(--dim);font-size:12px}
-.counts{display:flex;gap:12px;margin:10px 0;font-size:12px;color:var(--dim)}
-.counts b{color:var(--ink);font-size:15px}
-button{background:var(--blue);color:#fff;border:0;border-radius:7px;
-padding:6px 12px;cursor:pointer;font-size:13px}
-button.ghost{background:#eef1f5;color:var(--ink)}
-button.small{padding:2px 8px;font-size:12px}
-button.warn{background:var(--red)}button.ok{background:var(--green)}
-.stabs{display:flex;gap:4px;margin:12px 0 8px}
-.stabs button{background:none;color:var(--dim);border-bottom:2px solid transparent;
-border-radius:0;padding:4px 8px}
-.stabs button.on{color:var(--ink);border-bottom-color:var(--blue);font-weight:600}
-.badge{background:var(--red);color:#fff;border-radius:9px;padding:0 6px;
-font-size:11px;margin-left:4px}
-.card{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin:0 0 8px}
-.card h4{margin:0 0 2px;font-size:13px}
-.dim{color:var(--dim);font-size:12px}
-.chip{border-radius:9px;padding:0 7px;font-size:11px;color:#fff;white-space:nowrap}
+padding:12px 12px 18px;grid-row:1}
+aside h1{font-size:14px;margin:0;font-weight:600;letter-spacing:.2px}
+aside h1 .dot{color:var(--green)}
+.sub{color:var(--faint);font-size:11px;margin-top:2px}
+button{background:var(--accent);color:#14100d;border:0;border-radius:6px;
+padding:5px 11px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600}
+button.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);font-weight:400}
+button.small{padding:1px 8px;font-size:11.5px}
+button.warn{background:transparent;color:var(--red);border:1px solid #4a2b29;font-weight:400}
+button.okb{background:transparent;color:var(--green);border:1px solid #274a38;font-weight:400}
+button:hover{filter:brightness(1.15)}
+.sect{font-size:10.5px;letter-spacing:1.2px;color:var(--faint);text-transform:uppercase;
+margin:16px 0 6px;display:flex;align-items:center;gap:6px}
+.stabs{display:flex;gap:2px;margin:12px 0 2px;border-bottom:1px solid var(--line)}
+.stabs button{background:none;color:var(--dim);border:0;border-bottom:2px solid transparent;
+border-radius:0;padding:4px 9px;font-weight:400}
+.stabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.badge{background:var(--amber);color:#14100d;border-radius:8px;padding:0 6px;
+font-size:10.5px;margin-left:4px;font-weight:700}
+.trow{padding:6px 8px;border-radius:6px;border:1px solid transparent;cursor:default}
+.trow:hover{background:var(--panel2)}
+.trow.dec{background:#241d10;border-color:#4a3a14}
+.trow .r1{display:flex;gap:7px;align-items:baseline}
+.trow .id{color:var(--dim);font-size:11.5px}
+.trow .ttl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .meta{color:var(--faint);font-size:11px;margin-left:19px;white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis}
+.sdot{width:7px;height:7px;border-radius:50%;flex:none;position:relative;top:-1px}
 .proven{background:var(--green)}.refuted{background:var(--red)}
-.split{background:var(--amber)}.open{background:#5b6b80}
+.split{background:var(--amber)}.open{background:#6e7681}
 .claimed{background:var(--blue)}.delivered{background:var(--purple)}
-.closed{background:#39424f}.role{background:#8892a0}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.row .sp{margin-left:auto;display:flex;gap:5px}
-input,select,textarea{border:1px solid var(--line);border-radius:7px;
-padding:6px 8px;font:inherit;width:100%;margin:2px 0 8px;background:#fff}
-label{font-size:12px;color:var(--dim)}
-main{display:flex;flex-direction:column;min-width:0;background:#f7f8fa}
-.channels{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);
+.closed{background:#484f58}
+.tag{font-size:10.5px;padding:0 6px;border-radius:8px;border:1px solid var(--line);color:var(--dim)}
+.tag.proven{color:var(--green);border-color:#274a38}.tag.refuted{color:var(--red);border-color:#4a2b29}
+.tag.split{color:var(--amber);border-color:#4a3a14}
+.act{display:flex;gap:5px;margin:5px 0 2px 19px}
+.act input{flex:1}
+input,select,textarea{background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+padding:5px 8px;font:inherit;color:var(--ink);width:100%;margin:2px 0 7px}
+input:focus,textarea:focus,select:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+label{font-size:11px;color:var(--dim)}
+.card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;background:var(--panel2)}
+.card h4{margin:0 0 4px;font-size:12.5px}
+.dim{color:var(--dim);font-size:11.5px}
+main{display:flex;flex-direction:column;min-width:0;background:var(--bg);grid-row:1}
+.modes{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line);
 background:var(--panel);flex-wrap:wrap;align-items:center}
-.channels button{background:#eef1f5;color:var(--ink)}
-.channels button.on{background:var(--blue);color:#fff}
-#forkbar{display:none;background:#fff7e0;border-bottom:1px solid #ecd9a0;
-padding:6px 14px;font-size:12px}
-#msgs{flex:1;overflow-y:auto;padding:14px}
-.msg{max-width:78%;margin:0 0 10px;padding:8px 12px;border-radius:12px;
-background:#fff;border:1px solid var(--line);cursor:pointer}
-.msg.user{margin-left:auto;background:#dcebfd;border-color:#bcd4f5}
-.msg.summary{margin:0 auto 10px;background:#f0ead8;max-width:88%;text-align:left}
-.msg.sel{outline:2px solid var(--amber)}
-.msg .meta{font-size:11px;color:var(--dim);margin-bottom:2px}
-.msg .fork{color:var(--amber);font-size:11px}
-#composer{display:flex;gap:8px;padding:10px 14px;background:var(--panel);
-border-top:1px solid var(--line)}
-#composer textarea{flex:1;margin:0;resize:none}
+.modes .lbl{color:var(--faint);font-size:11px;margin-right:2px}
+.modes button{background:transparent;color:var(--dim);border:1px solid var(--line);font-weight:400}
+.modes button.on{color:var(--accent);border-color:var(--accent);background:#2a1c14}
+.modes .hint{margin-left:auto;color:var(--faint);font-size:11px}
+#forkbar{display:none;background:#241d10;border-bottom:1px solid #4a3a14;
+padding:5px 14px;font-size:11.5px;color:var(--amber)}
+#forkbar a{color:var(--amber)}
+#msgs{flex:1;overflow-y:auto;padding:10px 18px 14px}
+.ev{padding:5px 8px;border-radius:6px;cursor:pointer;border-left:2px solid transparent}
+.ev:hover{background:#141416}
+.ev.sel{background:#241d10;border-left-color:var(--amber)}
+.ev .hd{font-size:12px;color:var(--dim)}
+.ev .hd .who{color:var(--ink)}
+.ev .hd .tm{color:var(--faint);font-size:11px}
+.ev .bd{margin:2px 0 2px 7px;padding-left:11px;border-left:1px solid #2e2e33;
+white-space:pre-wrap;word-break:break-word}
+.ev.user{background:#1d1d20;border-radius:6px}
+.ev.user .bd{border-left-color:transparent;margin-left:0;padding-left:0}
+.gt{color:var(--accent);font-weight:700}
+.mk{font-weight:700}
+.mk.green{color:var(--green)}.mk.red{color:var(--red)}.mk.amber{color:var(--amber)}
+.mk.blue{color:var(--blue)}.mk.purple{color:var(--purple)}.mk.gray{color:#6e7681}
+.mk.acc{color:var(--accent)}
+.res{color:var(--dim);font-size:12.5px}
+.res .oc{font-weight:600}
+.fork{color:var(--amber);font-size:11px}
+#composer{padding:10px 14px 12px;background:var(--bg)}
+.cbox{border:1px solid #3a3b42;border-radius:10px;background:var(--panel);
+padding:8px 12px 6px}
+.cbox:focus-within{border-color:var(--accent)}
+.cbox textarea{border:0;background:transparent;margin:0;padding:2px 0;resize:none;width:100%}
+.cbox textarea:focus{outline:none}
+.cfoot{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);
+padding-top:6px;margin-top:4px;font-size:11px;color:var(--faint)}
+.cfoot .pill{color:var(--accent);border:1px solid #4a3226;border-radius:8px;padding:0 7px}
+.cfoot .sp{margin-left:auto;display:flex;gap:8px;align-items:center}
+.cfoot button{padding:3px 12px}
 nav{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;
-padding:14px 10px}
-nav h3{font-size:13px;margin:0 0 8px}
-.node{padding:6px 8px;border-radius:7px;cursor:pointer;font-size:12px;
-border:1px solid transparent}
-.node:hover{background:#f2f4f7}
-.node.sel{border-color:var(--amber);background:#fff7e0}
-.node .a{color:var(--dim)}
-#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
-background:#141a24;color:#eef1f5;padding:7px 14px;border-radius:8px;
-font-size:13px;display:none;z-index:9}
-svg text{font-size:10px;fill:var(--ink)}
-@media (max-width:1080px){body{grid-template-columns:300px 1fr}nav{display:none}}
+padding:12px 9px;grid-row:1}
+nav h3{font-size:10.5px;letter-spacing:1.2px;color:var(--faint);text-transform:uppercase;margin:0 0 6px}
+.node{padding:4px 7px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--dim);
+border-left:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node:hover{background:var(--panel2);color:var(--ink)}
+.node.sel{border-left-color:var(--amber);background:#241d10;color:var(--ink)}
+.node .a{color:var(--faint)}
+footer{grid-column:1/4;background:var(--panel);border-top:1px solid var(--line);
+display:flex;gap:16px;align-items:center;padding:0 12px;font-size:11px;color:var(--dim);
+overflow:hidden;white-space:nowrap}
+footer .acc{color:var(--accent)}
+footer .warn{color:var(--amber)}
+footer .meter{width:110px;height:5px;background:#26272c;border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+footer .meter i{display:block;height:100%;background:var(--green)}
+footer .right{margin-left:auto;display:flex;gap:16px}
+#toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);
+background:#232428;color:var(--ink);border:1px solid var(--line);padding:7px 14px;
+border-radius:8px;font-size:12.5px;display:none;z-index:9}
+svg text{font-size:10px;fill:var(--dim)}
+@media (max-width:1080px){body{grid-template-columns:280px 1fr}nav{display:none}footer{grid-column:1/3}}
 </style></head><body>
 <aside>
-  <h1>mechanism-agent</h1>
-  <div class="sub">研究机制控制台 · 写入经 Board/Tickets 规则校验<span id="ver"></span></div>
-  <div class="counts"><span>叶子开 <b id="c-open">–</b></span>
-  <span>已关 <b id="c-closed">–</b></span><span>票据 <b id="c-tix">–</b></span>
-  <span>等你定 <b id="c-dec">–</b></span></div>
-  <div class="row"><button onclick="runCycle()">▶ 叫醒一轮</button>
-  <button class="ghost" onclick="showTaskForm('leaf')">＋ 开叶子</button>
-  <button class="ghost" onclick="showTaskForm('ticket')">＋ 新票据</button></div>
+  <h1><span class="dot">●</span> mechanism-agent</h1>
+  <div class="sub">研究机制控制台 · 台账是唯一真相<span id="ver"></span></div>
+  <div class="sect">Actions</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button onclick="runCycle()">▶ 叫醒一轮</button>
+    <button class="ghost" onclick="showTaskForm('leaf')">＋ 叶子</button>
+    <button class="ghost" onclick="showTaskForm('ticket')">＋ 票据</button>
+  </div>
   <div class="stabs" id="stabs"></div>
   <div id="side-tasks"></div>
   <div id="side-agents" style="display:none"></div>
@@ -409,117 +461,153 @@ svg text{font-size:10px;fill:var(--ink)}
     <button type="button" class="ghost" onclick="hideAgentForm()">取消</button></form>
 </aside>
 <main>
-  <div class="channels" id="channels"></div>
+  <div class="modes" id="channels"></div>
   <div id="forkbar"></div>
   <div id="msgs"></div>
-  <div id="composer">
-    <textarea id="input" rows="2" placeholder="发消息…（Enter 发送，Shift+Enter 换行）"></textarea>
-    <button onclick="sendChat()">发送</button>
-  </div>
+  <div id="composer"><div class="cbox">
+    <textarea id="input" rows="2" placeholder="给成员发消息，或输入 /run 叫醒一轮…"></textarea>
+    <div class="cfoot"><span class="pill" id="c-chan">全体</span>
+    <span id="c-fork"></span>
+    <span>Enter 发送 · Shift+Enter 换行 · /run /leaf /ticket /help</span>
+    <span class="sp"><span id="c-model"></span><button onclick="sendChat()">发送</button></span></div>
+  </div></div>
 </main>
 <nav>
   <h3>Prompt 导航</h3>
-  <div class="dim" style="margin-bottom:8px">点任意节点：定位到那条消息并设为分叉点，下一条消息将从那里长出新分支（原线保留）。</div>
+  <div class="dim" style="margin-bottom:8px">点任意节点：定位到那条消息并设为分叉点，下一条消息从那里长出新分支（原线保留）。</div>
   <div id="nodes"></div>
   <button class="ghost small" onclick="clearFork()" style="margin-top:8px">回到最新（取消分叉）</button>
 </nav>
+<footer id="statusbar"></footer>
 <div id="toast"></div>
 <script>
 let S=null, channel="all", sideTab="tasks", forkParent=null, lastNearBottom=true;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tm=ts=>new Date(ts*1000).toLocaleTimeString();
 function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";
   setTimeout(()=>e.style.display="none",3600)}
 async function api(path,body){const r=await fetch(path,{method:body?"POST":"GET",
   headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});
   const d=await r.json();if(!r.ok)throw new Error(d.error||r.status);return d}
 function thread(){return S.chat.filter(m=>m.channel===channel||m.channel==="all")}
+function curAgent(){return S.agents.find(a=>a.name===channel)}
 function render(){
   if(!S)return;
-  $("ver").textContent=S.version?" · agent v"+S.version:"";
-  $("c-open").textContent=S.counts.leaves_open;$("c-closed").textContent=S.counts.leaves_closed;
-  $("c-tix").textContent=S.counts.tickets_open;$("c-dec").textContent=S.counts.decisions;
+  $("ver").textContent=S.version?" · v"+S.version:"";
   $("stabs").innerHTML=[["tasks","任务"],["agents","成员"],["graph","关系图"]].map(([k,v])=>
     `<button class="${sideTab===k?"on":""}" onclick="sideTab='${k}';render()">${v}${k==="tasks"&&S.counts.decisions?`<span class="badge">${S.counts.decisions}</span>`:""}</button>`).join("");
   for(const k of["tasks","agents","graph"]) $("side-"+k).style.display=sideTab===k?"block":"none";
+  const tot=S.counts.leaves_open+S.counts.leaves_closed;
+  const pct=tot?Math.round(100*S.counts.leaves_closed/tot):0;
+  const a=curAgent();
+  $("statusbar").innerHTML=
+    `<span><span class="acc">●</span> mechanism-agent${S.version?" v"+S.version:""}</span>`+
+    `<span>叶子 <b>${S.counts.leaves_open}</b> 开 / <b>${S.counts.leaves_closed}</b> 关</span>`+
+    `<span>进度 <span class="meter"><i style="width:${pct}%"></i></span> ${pct}%</span>`+
+    `<span>票据 ${S.counts.tickets_open} 开</span>`+
+    (S.counts.decisions?`<span class="warn">⏸ 等你定 ${S.counts.decisions} 件</span>`:"")+
+    `<span class="right"><span>${channel==="all"?"频道 全体":"频道 "+esc(channel)}</span>`+
+    `<span>模型 ${esc(a?(a.model||"全局/演示"):"—")}</span></span>`;
+  $("c-chan").textContent=channel==="all"?"全体":channel;
+  $("c-model").textContent=a?("模型 "+(a.model||"全局/演示")):"";
+  $("c-fork").textContent=forkParent?("↳ 分叉自 #"+forkParent):"";
   renderTasks();renderAgents();renderGraph();renderChat();
 }
 function renderTasks(){
   const el=$("side-tasks");if(document.activeElement&&el.contains(document.activeElement)&&
     /INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
   let h="";
-  if(S.decisions.length){h+="<h4>等你定</h4>"+S.decisions.map(t=>`
-    <div class="card"><h4>#${t.id} ${esc(t.title)}</h4>
-    <div class="dim">决定人 ${esc(t.decider)} · 触发 ${esc(t.next_trigger||"—")}</div>
-    <div class="row" style="margin-top:6px"><input id="note-${t.id}" placeholder="附言（可选）">
-    <span class="sp"><button class="small ok" onclick="decide(${t.id},'approve')">批准</button>
-    <button class="small warn" onclick="decide(${t.id},'reject')">否决</button></span></div></div>`).join("")}
-  h+="<h4>认领板</h4>"+(S.leaves.map(l=>`
-    <div class="card"><div class="row"><b>${esc(l.leaf_id)}</b>
-    <span class="chip ${l.status==="closed"?l.outcome:l.status}">${l.status==="closed"?l.outcome:l.status}</span>
-    <span class="dim">${esc(l.checker||"")}</span></div>
-    <div style="font-size:13px">${esc(l.task)}</div>
-    <div class="dim">${l.claimed_by?"认领 "+esc(l.claimed_by):""} ${l.delivered_by?"· 交付 "+esc(l.delivered_by):""} ${l.closed_by?"· 关单 "+esc(l.closed_by):""}</div></div>`).join("")||'<div class="dim">暂无叶子</div>');
-  h+="<h4>票据</h4>"+(S.tickets.map(t=>`
-    <div class="card"><div class="row"><b>#${t.id}</b><span style="font-size:13px">${esc(t.title)}</span>
-    <span class="chip ${t.status==="closed"?"closed":"open"}">${t.status}</span>
-    ${t.status!=="closed"?`<span class="sp"><button class="small ok" onclick="closeTicket(${t.id},'done')">完成</button>
-    <button class="small warn" onclick="closeTicket(${t.id},'dropped')">放弃</button></span>`:""}</div>
-    <div class="dim">负责人 ${esc(t.owner||"—")} · 决定人 ${esc(t.decider||"—")}</div></div>`).join("")||'<div class="dim">暂无票据</div>');
+  if(S.decisions.length){h+='<div class="sect">⏸ 等你定</div>'+S.decisions.map(t=>`
+    <div class="trow dec"><div class="r1"><span style="color:var(--amber)">●</span>
+    <span class="id">#${t.id}</span><span class="ttl">${esc(t.title)}</span></div>
+    <div class="meta">决定人 ${esc(t.decider)} · 触发 ${esc(t.next_trigger||"—")}</div>
+    <div class="act"><input id="note-${t.id}" placeholder="附言（可选）">
+    <button class="small okb" onclick="decide(${t.id},'approve')">批准</button>
+    <button class="small warn" onclick="decide(${t.id},'reject')">否决</button></div></div>`).join("")}
+  h+='<div class="sect">认领板 · Leaves</div>'+(S.leaves.map(l=>`
+    <div class="trow"><div class="r1"><span class="sdot ${l.status==="closed"?l.outcome:l.status}"></span>
+    <span class="id">${esc(l.leaf_id)}</span><span class="ttl">${esc(l.task)}</span>
+    <span class="tag ${l.status==="closed"?l.outcome:""}">${l.status==="closed"?l.outcome:l.status}</span></div>
+    <div class="meta">${esc(l.checker||"无检查器")}${l.claimed_by?" · "+esc(l.claimed_by):""}${l.delivered_by?" → "+esc(l.delivered_by):""}${l.closed_by?" · 关 "+esc(l.closed_by):""}</div></div>`).join("")||'<div class="dim">暂无叶子</div>');
+  h+='<div class="sect">票据 · Tickets</div>'+(S.tickets.map(t=>`
+    <div class="trow"><div class="r1"><span class="sdot ${t.status==="closed"?"closed":"open"}"></span>
+    <span class="id">#${t.id}</span><span class="ttl">${esc(t.title)}</span>
+    <span class="tag">${t.status}</span></div>
+    <div class="meta">负责人 ${esc(t.owner||"—")} · 决定人 ${esc(t.decider||"—")}</div>
+    ${t.status!=="closed"?`<div class="act"><button class="small okb" onclick="closeTicket(${t.id},'done')">完成</button>
+    <button class="small warn" onclick="closeTicket(${t.id},'dropped')">放弃</button></div>`:""}</div>`).join("")||'<div class="dim">暂无票据</div>');
   el.innerHTML=h;
 }
 function renderAgents(){
   const el=$("side-agents");
-  el.innerHTML=S.agents.map(a=>`
-   <div class="card"><div class="row"><b>${esc(a.name)}</b>
-    <span class="chip role">${a.role}</span>
-    <span class="chip ${a.state==="Active"?"claimed":"open"}">${a.enabled?a.state:"停用"}</span>
-    <span class="sp"><button class="small ghost" onclick='editAgent(${JSON.stringify(a.name)})'>编辑</button>
+  el.innerHTML='<div class="sect">成员 · Agents</div>'+S.agents.map(a=>`
+   <div class="trow"><div class="r1"><span class="sdot" style="background:${!a.enabled?"#484f58":a.state==="Active"?"var(--green)":"#6e7681"}"></span>
+    <span class="ttl" style="flex:none">${esc(a.name)}</span><span class="tag">${a.role}</span>
+    <span class="tag">${a.enabled?a.state:"停用"}</span>
+    <span style="margin-left:auto;display:flex;gap:4px"><button class="small ghost" onclick='editAgent(${JSON.stringify(a.name)})'>编辑</button>
     <button class="small warn" onclick='delAgent(${JSON.stringify(a.name)})'>删除</button></span></div>
-    <div class="dim">模型 ${esc(a.model||"（全局/演示）")} ${a.base_url?"· "+esc(a.base_url):""} · temp ${a.temperature}</div>
-    <div class="dim">认领 ${a.stats.claimed} · 交付 ${a.stats.delivered} · 关单 ${a.stats.closed}${a.last?" · 最近 "+esc(a.last):""}</div></div>`).join("")
-   +'<button onclick="newAgent()">＋ 新增成员</button>';
+    <div class="meta">${esc(a.model||"（全局/演示）")}${a.base_url?" · "+esc(a.base_url):""} · temp ${a.temperature}</div>
+    <div class="meta">认领 ${a.stats.claimed} · 交付 ${a.stats.delivered} · 关单 ${a.stats.closed}${a.last?" · 最近 "+esc(a.last):""}</div></div>`).join("")
+   +'<button class="ghost" onclick="newAgent()" style="margin-top:6px">＋ 新增成员</button>';
 }
 function renderGraph(){
   const el=$("side-graph");const g=S.graph;
-  const cx=150,cy=125,R=92;const pos={user:[cx,cy]};
+  const cx=140,cy=118,R=84;const pos={user:[cx,cy]};
   const others=g.nodes.filter(n=>n.name!=="user");
   others.forEach((n,i)=>{const t=2*Math.PI*i/Math.max(others.length,1)-Math.PI/2;
     pos[n.name]=[cx+R*Math.cos(t),cy+R*Math.sin(t)]});
-  const col={dispatch:"#8892a0",deliver:"#2456a6",close:"#177245",chat:"#6a4fa3",reply:"#2a7f8f"};
-  let s=`<svg width="300" height="250" viewBox="0 0 300 250">`;
+  const col={dispatch:"#6e7681",deliver:"#58a6ff",close:"#4caf7d",chat:"#b083f0",reply:"#2a9f8f"};
+  let s=`<div class="sect">关系图 · Graph</div><svg width="280" height="236" viewBox="0 0 280 236">`;
   for(const e of g.edges){const a=pos[e.from],b=pos[e.to];if(!a||!b)continue;
-    s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col[e.kind]||"#999"}" stroke-width="1.4"/>
+    s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col[e.kind]||"#555"}" stroke-width="1.3"/>
     <text x="${(a[0]+b[0])/2}" y="${(a[1]+b[1])/2-3}">${e.kind} ×${e.count}</text>`}
   for(const n of g.nodes){const p=pos[n.name];
-    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="17" fill="${n.name==="user"?"#2456a6":"#fff"}" stroke="#2456a6"/>
-    <text x="${p[0]}" y="${p[1]+28}" text-anchor="middle">${esc(n.name)}</text>
-    <text x="${p[0]}" y="${p[1]+3}" text-anchor="middle" fill="${n.name==="user"?"#fff":"#2456a6"}">${n.name==="user"?"你":esc(n.role[0].toUpperCase())}</text>`}
-  el.innerHTML=s+"</svg>"+'<div class="dim">线 = 实际发生过的交互（派工/交付/关单/对话），数字为次数。点成员卡片的编辑可改模型参数。</div>';
+    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="15" fill="${n.name==="user"?"#d97757":"#1c1d21"}" stroke="#d97757"/>
+    <text x="${p[0]}" y="${p[1]+26}" text-anchor="middle">${esc(n.name)}</text>
+    <text x="${p[0]}" y="${p[1]+3}" text-anchor="middle" fill="${n.name==="user"?"#14100d":"#d97757"}">${n.name==="user"?"你":esc(n.role[0].toUpperCase())}</text>`}
+  el.innerHTML=s+"</svg>"+'<div class="dim">线 = 实际发生过的交互（派工/交付/关单/对话），数字为次数。成员页可增减成员、改各自的模型参数。</div>';
+}
+const KINDMK={open:["●","gray","开题"],claim:["●","blue","认领"],deliver:["●","purple","交付"],
+  close:["●","green","关单"],stuck:["●","amber","卡住"],release:["●","gray","释放"]};
+function transcriptItems(){
+  const items=thread().map(m=>({ts:m.ts,type:"chat",m}));
+  if(channel==="all")for(const e of S.feed)items.push({ts:e.ts,type:"tool",e});
+  return items.sort((x,y)=>x.ts-y.ts);
 }
 function renderChat(){
   const chans=["all",...S.agents.filter(a=>a.role!=="coordinator").map(a=>a.name)];
   if(!chans.includes(channel))channel="all";
-  $("channels").innerHTML='<span class="dim">频道</span>'+chans.map(c=>
+  $("channels").innerHTML='<span class="lbl">频道</span>'+chans.map(c=>
     `<button class="${c===channel?"on":""}" onclick="channel='${c}';forkParent=null;render()">${c==="all"?"全体":c}</button>`).join("")
-    +'<span class="dim" style="margin-left:auto">会话持久保存 · 可从任意消息分叉</span>';
-  const th=thread();const box=$("msgs");
+    +'<span class="hint">会话持久保存 · 点任意消息设为分叉点</span>';
+  const items=transcriptItems();const box=$("msgs");
   const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
   let prev=null;
-  box.innerHTML=th.map(m=>{const forked=m.parent_id&&prev!==null&&m.parent_id!==prev;
-    prev=m.id;return `<div class="msg ${m.author==="user"?"user":m.kind==="summary"?"summary":""} ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
-    <div class="meta">#${m.id} ${esc(m.author)} · ${new Date(m.ts*1000).toLocaleTimeString()}${m.channel!=="all"&&channel==="all"?" · @"+esc(m.channel):""}</div>
-    ${forked?`<div class="fork">↳ 分叉自 #${m.parent_id}</div>`:""}
-    <div>${esc(m.text)}</div></div>`}).join("")||'<div class="dim">这个频道还没有消息，在下面发第一条。</div>';
+  box.innerHTML=items.map(it=>{
+    if(it.type==="tool"){const e=it.e;const k=KINDMK[e.kind]||["●","gray",e.kind||"事件"];
+      return `<div class="ev"><div class="hd"><span class="mk ${k[1]}">${k[0]}</span>
+      <span class="who">${k[2]} ${esc(e.leaf||"")}</span> <span class="tm">${tm(e.ts)}</span></div>
+      <div class="bd res">⎿ ${e.by?"by "+esc(e.by):""}${e.outcome?' → <span class="oc">'+esc(e.outcome)+"</span>":""}</div></div>`}
+    const m=it.m;const forked=m.parent_id&&prev!==null&&m.parent_id!==prev;prev=m.id;
+    if(m.author==="user")return `<div class="ev user ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
+      <div class="hd"><span class="gt">&gt;</span> <span class="who">你</span> <span class="tm">#${m.id} · ${tm(m.ts)}${m.channel!=="all"&&channel==="all"?" · @"+esc(m.channel):""}</span></div>
+      ${forked?`<div class="fork">↳ 分叉自 #${m.parent_id}</div>`:""}
+      <div class="bd">${esc(m.text)}</div></div>`;
+    const mk=m.kind==="summary"?["✻","acc"]:["●","blue"];
+    return `<div class="ev ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
+      <div class="hd"><span class="mk ${mk[1]}">${mk[0]}</span> <span class="who">${esc(m.author)}</span> <span class="tm">#${m.id} · ${tm(m.ts)}</span></div>
+      ${forked?`<div class="fork">↳ 分叉自 #${m.parent_id}</div>`:""}
+      <div class="bd">${esc(m.text)}</div></div>`}).join("")||'<div class="dim">这个频道还没有消息，在下面发第一条（或 /run 叫醒一轮）。</div>';
   if(nearBottom||lastNearBottom)box.scrollTop=box.scrollHeight;
   lastNearBottom=nearBottom;
   const fb=$("forkbar");
   if(forkParent){fb.style.display="block";
-    fb.innerHTML=`分叉点：消息 #${forkParent} — 下一条消息将从这里长出新分支。<a href="#" onclick="clearFork();return false">取消</a>`}
+    fb.innerHTML=`↳ 分叉点：消息 #${forkParent} — 下一条消息将从这里长出新分支。<a href="#" onclick="clearFork();return false">取消</a>`}
   else fb.style.display="none";
-  $("nodes").innerHTML=[...th].reverse().map(m=>
+  $("nodes").innerHTML=thread().slice().reverse().map(m=>
     `<div class="node ${forkParent===m.id?"sel":""}" onclick="jumpTo(${m.id})">
-    <span class="a">#${m.id} ${esc(m.author)}</span> ${esc(m.text.slice(0,34))}</div>`).join("");
+    <span class="a">#${m.id} ${esc(m.author)}</span> ${esc(m.text.slice(0,30))}</div>`).join("");
   const sel=$("checker-sel");
   if(sel&&sel.options.length===0)sel.innerHTML='<option value="">（无检查器）</option>'+S.checkers.map(c=>`<option>${c}</option>`).join("");
 }
@@ -528,7 +616,12 @@ function setFork(id){forkParent=id;render();
 function jumpTo(id){setFork(id)}
 function clearFork(){forkParent=null;render();const b=$("msgs");b.scrollTop=b.scrollHeight}
 async function sendChat(){const ta=$("input");const text=ta.value.trim();if(!text)return;
-  try{await api("/api/chat",{channel,text,parent_id:forkParent});ta.value="";forkParent=null;refresh()}
+  try{
+    if(text==="/help"){toast("/run 叫醒一轮 · /leaf 题目 开叶子 · /ticket 标题 建票据 · 点消息设分叉点");ta.value="";return}
+    if(text==="/run"){ta.value="";runCycle();return}
+    if(text.startsWith("/leaf ")){await api("/api/leaf",{task:text.slice(6)});ta.value="";toast("已开叶子");refresh();return}
+    if(text.startsWith("/ticket ")){await api("/api/ticket",{title:text.slice(8)});ta.value="";toast("已建票据");refresh();return}
+    await api("/api/chat",{channel,text,parent_id:forkParent});ta.value="";forkParent=null;refresh()}
   catch(e){toast("出错："+e.message)}}
 $("input").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}});
 async function runCycle(){toast("叫醒中…");try{const r=await api("/api/run",{});
@@ -561,8 +654,7 @@ async function postAgent(ev){ev.preventDefault();const f=new FormData(ev.target)
 function hideAgentForm(){$("agent-form").style.display="none"}
 async function refresh(){try{S=await api("/api/state");render()}catch(e){}}
 refresh();setInterval(refresh,3000);
-</script></body></html>
-"""
+</script></body></html>"""
 
 
 def make_handler(app: App):
