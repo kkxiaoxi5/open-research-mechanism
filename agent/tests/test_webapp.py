@@ -43,7 +43,7 @@ class WebApp(unittest.TestCase):
         self.assertIn("控制台", html)
         _, state = self.call("/api/state")
         self.assertEqual(state["counts"]["decisions"], 1)
-        self.assertEqual(len(state["members"]), 4)
+        self.assertEqual(len(state["agents"]), 4)
 
     def test_open_leaf_run_and_decide(self):
         _, r = self.call("/api/leaf", {"task": "Sum 1 to 10",
@@ -65,6 +65,35 @@ class WebApp(unittest.TestCase):
         self.assertEqual(r["closed_as"], "done")
         _, state = self.call("/api/state")
         self.assertEqual(state["counts"]["decisions"], 0)
+
+    def test_agents_registry_chat_and_graph(self):
+        _, r = self.call("/api/agents", {"name": "worker-3", "role": "worker",
+                                         "model": "m-x", "temperature": 0.7})
+        self.assertEqual(r["name"], "worker-3")
+        _, state = self.call("/api/state")
+        self.assertEqual(len(state["agents"]), 5)
+        w3 = [a for a in state["agents"] if a["name"] == "worker-3"][0]
+        self.assertEqual(w3["model"], "m-x")
+        self.assertEqual(w3["temperature"], 0.7)
+        # chat: post, fork from it, run a cycle -> the agent replies
+        _, m1 = self.call("/api/chat", {"channel": "worker-1",
+                                        "text": "please focus"})
+        _, m2 = self.call("/api/chat", {"channel": "worker-1",
+                                        "text": "branching from first",
+                                        "parent_id": m1["id"]})
+        self.assertEqual(m2["parent_id"], m1["id"])
+        self.call("/api/run", {})
+        _, state = self.call("/api/state")
+        authors = [m["author"] for m in state["chat"]]
+        self.assertIn("worker-1", authors)       # reply was posted
+        self.assertIn("coordinator", authors)    # cycle summary was posted
+        kinds = {(e["from"], e["to"]) for e in state["graph"]["edges"]}
+        self.assertIn(("user", "worker-1"), kinds)
+        # delete the extra agent again
+        _, r = self.call("/api/agents/delete", {"name": "worker-3"})
+        self.assertEqual(r["removed"], "worker-3")
+        _, state = self.call("/api/state")
+        self.assertEqual(len(state["agents"]), 4)
 
     def test_message_and_rule_violation(self):
         self.app.message({"to": "worker-1", "text": "focus on D2"})

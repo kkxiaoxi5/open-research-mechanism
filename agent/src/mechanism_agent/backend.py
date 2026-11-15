@@ -35,11 +35,13 @@ class MockBackend:
 
 class OpenAICompatBackend:
     def __init__(self, base_url: str | None = None, api_key: str | None = None,
-                 model: str | None = None, timeout: float = 120):
+                 model: str | None = None, timeout: float = 120,
+                 temperature: float = 0):
         self.base_url = (base_url or os.environ.get("MECH_AGENT_BASE_URL", "")).rstrip("/")
         self.api_key = api_key or os.environ.get("MECH_AGENT_API_KEY", "")
         self.model = model or os.environ.get("MECH_AGENT_MODEL", "")
         self.timeout = timeout
+        self.temperature = temperature
         if not self.base_url or not self.model:
             raise ValueError("set MECH_AGENT_BASE_URL and MECH_AGENT_MODEL")
 
@@ -48,7 +50,7 @@ class OpenAICompatBackend:
             "model": self.model,
             "messages": [{"role": "system", "content": system},
                          {"role": "user", "content": user}],
-            "temperature": 0,
+            "temperature": self.temperature,
         }).encode()
         req = urllib.request.Request(
             f"{self.base_url}/chat/completions", data=body,

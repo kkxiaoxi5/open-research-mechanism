@@ -17,7 +17,8 @@ an intranet machine — can run it end to end.
 | `orchestrator.py` | One wake-up cycle: reconcile expired leases and stuck leaves → dispatch → review → snapshot. |
 | `backend.py` | Pluggable model backends: a deterministic mock (runs the demo with no keys) and an OpenAI-compatible client for a real model, public or intranet. |
 | `tracker.py` | Human-scale tickets (tasks / questions / decisions, with a decision queue) and **snapshot export** back into files — tracker state never lives only inside a service. |
-| `webapp.py` | The interactive console (the user's operating surface): decision queue, claim board, tickets, members, activity — plus opening leaves, deciding tickets, messaging members and running a wake-up cycle. Every action goes through the same Board/Tickets rules as the agents; nothing writes state files directly. `dashboard.py` remains as a static snapshot renderer. |
+| `webapp.py` | The interactive console: a task sidebar (decision queue, claim board, tickets, agent management, relation graph), a persistent per-agent chat pane, and a prompt navigator that forks the conversation from any message. Agents are added/removed and given per-agent model parameters (model, base URL, temperature; keys stay in env vars) from the Agent tab; the orchestrator rebuilds its workers from the registry every cycle. Every write goes through the same Board/Tickets rules as the agents. |
+| `registry.py` / `chat.py` | The agent registry (`agents.json`) and the branchable, append-only conversation log (`chat.jsonl`, parent-linked messages). |
 | `skills/` + `skills.py` | Seven bundled playbooks (leaf splitting, known-answer tests, counterexample hunting, proof review, formalization, evidence accounting, tracker workflow), loaded by role into each agent's prompt — the working habits ship with the machinery. List them with the `skills` command. |
 
 ## Run the demo (no keys, one minute)
