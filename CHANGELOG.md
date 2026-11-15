@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.0 — 2026-11-15
+
+- Console: from imitating Claude Code's *look* to imitating its
+  *supervision model* (agent package 0.8.0). Pending decisions now
+  interrupt the transcript as permission dialogs — full context
+  (title, decider, next trigger, what approving/rejecting does),
+  answerable by click or by keys 1 / 2. Tool-call lines expand on
+  click (checker, arguments, claim→deliver→close chain); Ctrl+O
+  toggles all. Round results and errors are persistent ✻ lines in
+  the transcript instead of vanishing toasts. Messages sent while
+  a round runs are marked as queued steering for the next round.
+  The composer gains Claude-Code keyboard behaviour: ↑/↓ history,
+  Shift+Tab cycles channels. The ⏵⏵ mode line is now honest: it
+  shows the real wake mode (manual) and the channel agent's actual
+  backend (model name or demo) instead of a decorative channel tag.
+
 ## 0.10.0 — 2026-11-15
 
 - Console restyled as a pixel-level imitation of the Claude Code

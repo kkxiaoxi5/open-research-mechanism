@@ -432,6 +432,23 @@ footer .meter{display:inline-block;letter-spacing:-1px}
 footer .right{margin-left:auto;display:flex;gap:16px;align-items:center}
 footer .lang button{color:var(--faint);padding:0 3px;font-size:11px}
 footer .lang button.on{color:var(--accent)}
+.dlg{border:1px solid var(--line2);border-radius:10px;padding:10px 14px;margin:8px 0;background:#101010;cursor:default}
+.dlg .q{color:var(--ink);font-weight:700}
+.dlg .why{color:var(--dim);margin:3px 0}
+.dlg .cons{color:var(--faint);font-size:11.5px}
+.dlg .opts{display:flex;gap:22px;margin-top:7px}
+.dlg .opts button{color:var(--dim)}
+.dlg .opts button.cur{color:var(--ink)}
+.dlg .opts button.cur::before{content:"❯ ";color:var(--accent)}
+.dlg .opts button:hover{color:#fff}
+.dlg input{margin-top:7px}
+.ev .detail{display:none;margin:1px 0 3px 15px;color:var(--dim);font-size:12px;
+border-left:1px solid #2e2e33;padding-left:11px;white-space:pre-wrap}
+.ev.open .detail{display:block}
+.sysline{color:var(--faint);padding:2px 6px;font-size:12px}
+.sysline .spark{color:var(--accent)}
+.sysline.err{color:var(--red)}
+.qtag{color:var(--amber);font-size:11px}
 #toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);
 background:#161616;color:var(--ink);border:1px solid var(--line2);padding:6px 13px;
 border-radius:8px;font-size:12px;display:none;z-index:9}
@@ -530,13 +547,16 @@ a_model:"Model (blank = global / demo backend)",a_base:"Base URL (OpenAI-compati
 a_keyenv:"Env var holding the API key (name only, never the key)",a_enabled:"Enabled",a_save:"Save",a_cancel:"Cancel",
 navi_title:"Prompt Navigator",navi_help:"Click a node to jump to that message and set it as the fork point. The next message grows a new branch there; the original line is kept.",
 navi_clear:"⏎ back to latest (clear fork)",composer_ph:"Message a member, or type / for commands…",
-send:"Send ⏎",mode:"⏵⏵ channel",
+send:"Send ⏎",
 t_waking:"Waking…",t_round:"Round: proven {p} · refuted {r} · split {s}",t_error:"Error: ",
 t_leaf:"Leaf opened: ",t_ticket:"Ticket created #",t_decided:"Decision recorded",t_deleted:"Deleted ",
 t_saved:"Member saved: ",t_help:"/run wake a round · /leaf <task> open a leaf · /ticket <title> new ticket · click a message to fork",
 confirm_del:"Delete member {name}? (history is kept)",fork_chip:"↳ fork from #",
 verbs:["Pondering","Cogitating","Synthesizing","Deliberating","Mulling","Reasoning","Thinking"],
-cmd_run:"wake one round",cmd_leaf:"open a leaf",cmd_ticket:"new ticket",cmd_help:"show help"},
+cmd_run:"wake one round",cmd_leaf:"open a leaf",cmd_ticket:"new ticket",cmd_help:"show help",
+dlg_q:"Ticket #{id} awaits your decision",dlg_cons:"Approve closes it as done · Reject closes it as dropped · keys 1 / 2 answer the top dialog",
+mode_manual:"⏵⏵ wake: manual",backend_demo:"demo backend",queued:"queued → next round",
+sys_round:"Round complete",sys_err:"Error",expand_hint:"click a tool line to expand · ctrl+o toggles all"},
 ja:{subtitle:"研究メカニズム・コンソール",wake:"⏵ 一ラウンド起こす",
 add_leaf:"＋ リーフ",add_ticket:"＋ チケット",tab_tasks:"タスク",tab_agents:"メンバー",tab_graph:"関係図",
 welcome_1:"台帳が唯一の真実",welcome_2:"会話は永続保存 · 任意のメッセージから分岐",welcome_3:"書き込みは Board / Tickets の規則を通る",
@@ -560,13 +580,16 @@ a_model:"モデル（空欄＝全体／デモバックエンド）",a_base:"Base
 a_keyenv:"API キーを保持する環境変数名（名前のみ、キー自体は保存しない）",a_enabled:"有効",a_save:"保存",a_cancel:"キャンセル",
 navi_title:"Prompt ナビ",navi_help:"ノードをクリック：そのメッセージへ移動し分岐点に設定。次のメッセージはそこから新しい枝を伸ばす（元の線は保持）。",
 navi_clear:"⏎ 最新へ戻る（分岐を解除）",composer_ph:"メンバーへメッセージ、または / でコマンド…",
-send:"送信 ⏎",mode:"⏵⏵ チャンネル",
+send:"送信 ⏎",
 t_waking:"起動中…",t_round:"本ラウンド：証明 {p} · 反証 {r} · 分割 {s}",t_error:"エラー：",
 t_leaf:"リーフを開いた：",t_ticket:"チケット作成 #",t_decided:"決定を記録した",t_deleted:"削除した ",
 t_saved:"メンバーを保存：",t_help:"/run 一ラウンド · /leaf 課題 リーフを開く · /ticket 題名 チケット作成 · メッセージのクリックで分岐",
 confirm_del:"メンバー {name} を削除する？（履歴は残る）",fork_chip:"↳ 分岐元 #",
 verbs:["思考中","推論中","検討中","熟考中","統合中"],
-cmd_run:"一ラウンド起こす",cmd_leaf:"リーフを開く",cmd_ticket:"チケット作成",cmd_help:"ヘルプ表示"}};
+cmd_run:"一ラウンド起こす",cmd_leaf:"リーフを開く",cmd_ticket:"チケット作成",cmd_help:"ヘルプ表示",
+dlg_q:"チケット #{id} があなたの決定待ち",dlg_cons:"承認＝完了で閉じる · 却下＝破棄で閉じる · キー 1 / 2 で先頭のダイアログに回答",
+mode_manual:"⏵⏵ 起動：手動",backend_demo:"デモバックエンド",queued:"キュー済 → 次ラウンド",
+sys_round:"ラウンド完了",sys_err:"エラー",expand_hint:"ツール行クリックで展開 · ctrl+o で全展開切替"}};
 let lang=localStorage.getItem("mech-lang")||"en"; if(!L[lang])lang="en";
 const t=(k,v)=>{let s=L[lang][k]||L.en[k]||k;if(v)for(const x in v)s=String(s).replace("{"+x+"}",v[x]);return s};
 let S=null, channel="all", sideTab="tasks", forkParent=null, lastNearBottom=true, spinTimer=null;
@@ -603,7 +626,7 @@ function render(){
     `<span class="right"><span class="lang"><button class="${lang==="en"?"on":""}" onclick="setLang('en')">EN</button>|<button class="${lang==="ja"?"on":""}" onclick="setLang('ja')">日本語</button></span>`+
     `<span>${t("sb_channel")} ${channel==="all"?t("all"):esc(channel)}</span>`+
     `<span>${t("sb_model")} ${esc(a?(a.model||t("model_global")):"—")}</span></span>`;
-  $("c-mode").textContent=t("mode")+": "+(channel==="all"?t("all"):channel);
+  $("c-mode").textContent=t("mode_manual")+" · "+(a?(a.model||t("backend_demo")):t("backend_demo"));
   $("c-model").textContent=a?((a.model||t("model_global"))):"";
   $("c-fork").textContent=forkParent?(t("fork_chip")+forkParent):"";
   renderTasks();renderAgents();renderGraph();renderChat();
@@ -664,26 +687,43 @@ function renderGraph(){
 }
 const KINDMK={open:["●","gray","k_open"],claim:["●","blue","k_claim"],deliver:["●","purple","k_deliver"],
   close:["●","green","k_close"],stuck:["●","amber","k_stuck"],release:["●","gray","k_release"]};
+let sysLines=[], expandAll=false, running=false;
 function transcriptItems(){
   const items=thread().map(m=>({ts:m.ts,type:"chat",m}));
-  if(channel==="all")for(const e of S.feed)items.push({ts:e.ts,type:"tool",e});
+  if(channel==="all"){
+    for(const e of S.feed)items.push({ts:e.ts,type:"tool",e});
+    for(const d of S.decisions)items.push({ts:0,type:"dlg",d});
+    for(const x of sysLines)items.push({ts:x.ts,type:"sys",x});
+  }
   return items.sort((x,y)=>x.ts-y.ts);
 }
+function sys(text,err){sysLines.push({ts:Date.now()/1000,text,err:!!err});if(sysLines.length>30)sysLines.shift()}
 function renderChat(){
   const chans=["all",...S.agents.filter(a=>a.role!=="coordinator").map(a=>a.name)];
   if(!chans.includes(channel))channel="all";
   $("channels").innerHTML=`<span class="lbl">${t("channel")}</span>`+chans.map(c=>
     `<button class="${c===channel?"on":""}" onclick="channel='${c}';forkParent=null;render()">${c==="all"?t("all"):c}</button>`).join("")
-    +`<span class="hint">${t("chan_hint")}</span>`;
+    +`<span class="hint">${t("chan_hint")} · ${t("expand_hint")}</span>`;
   const items=transcriptItems();const box=$("msgs");
   const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
   let prev=null;
   box.innerHTML=items.map(it=>{
+    if(it.type==="sys"){const x=it.x;
+      return `<div class="sysline ${x.err?"err":""}"><span class="spark">${x.err?"✻":"✻"}</span> ${esc(x.text)}</div>`}
+    if(it.type==="dlg"){const d=it.d;
+      return `<div class="dlg"><div class="q">⏸ ${t("dlg_q",{id:d.id})}</div>
+      <div class="why">${esc(d.title)}</div>
+      <div class="cons">${t("decider")} ${esc(d.decider)} · ${t("trigger")} ${esc(d.next_trigger||"—")} · ${t("dlg_cons")}</div>
+      <input id="dnote-${d.id}" placeholder="${t("note_ph")}">
+      <div class="opts"><button class="cur" onclick="decide(${d.id},'approve')">1. ${t("approve").replace("❯ ","")}</button>
+      <button onclick="decide(${d.id},'reject')">2. ${t("reject")}</button></div></div>`}
     if(it.type==="tool"){const e=it.e;const k=KINDMK[e.kind]||["●","gray",null];
-      return `<div class="ev"><span class="mk ${k[1]}">${k[0]}</span>
+      const lf=S.leaves.find(l=>l.leaf_id===e.leaf);
+      const det=lf?`${esc(lf.task)}\n${t("f_checker")}: ${esc(lf.checker||"—")} ${lf.checker_args?esc(JSON.stringify(lf.checker_args)):""}\n${t("claimed")}: ${esc(lf.claimed_by||"—")} · ${t("delivered")}: ${esc(lf.delivered_by||"—")} · ${t("closed_by")}: ${esc(lf.closed_by||"—")}`:"";
+      return `<div class="ev ${expandAll?"open":""}" onclick="this.classList.toggle('open')"><span class="mk ${k[1]}">${k[0]}</span>
       <span class="who" style="font-weight:700">${k[2]?t(k[2]):e.kind} ${esc(e.leaf||"")}</span>
       <span class="tm" style="color:var(--faint);font-size:11px"> ${tm(e.ts)}</span>
-      <div class="bd res">⎿ ${e.by?"by "+esc(e.by):""}${e.outcome?' → <span class="oc">'+esc(e.outcome)+"</span>":""}</div></div>`}
+      <div class="bd res">⎿ ${e.by?"by "+esc(e.by):""}${e.outcome?' → <span class="oc">'+esc(e.outcome)+"</span>":""}</div>${det?`<div class="detail">${det}</div>`:""}</div>`}
     const m=it.m;const forked=m.parent_id&&prev!==null&&m.parent_id!==prev;prev=m.id;
     if(m.author==="user")return `<div class="ev user ${forkParent===m.id?"sel":""}" id="msg-${m.id}" onclick="setFork(${m.id})">
       <span class="gt">&gt;</span> <span class="who" style="font-weight:700">${t("you")}</span> <span class="tm" style="color:var(--faint);font-size:11px">#${m.id} · ${tm(m.ts)}${m.channel!=="all"&&channel==="all"?" · @"+esc(m.channel):""}</span>
@@ -724,17 +764,31 @@ function pickCmd(c){const ta=$("input");
   if(c==="/help"){ta.value="";$("slashmenu").style.display="none";toast(t("t_help"));return}
   ta.value=c;ta.focus();$("slashmenu").style.display="none"}
 $("input").addEventListener("input",slashMenu);
+let hist=[], histIdx=-1;
 async function sendChat(){const ta=$("input");const text=ta.value.trim();if(!text)return;
+  hist.push(text);histIdx=hist.length;
   $("slashmenu").style.display="none";
+  const wasRunning=running;
   try{
     if(text==="/help"){toast(t("t_help"));ta.value="";return}
     if(text==="/run"){ta.value="";runCycle();return}
     if(text.startsWith("/leaf ")){await api("/api/leaf",{task:text.slice(6)});ta.value="";toast(t("t_leaf"));refresh();return}
     if(text.startsWith("/ticket ")){await api("/api/ticket",{title:text.slice(8)});ta.value="";toast(t("t_ticket"));refresh();return}
-    await api("/api/chat",{channel,text,parent_id:forkParent});ta.value="";forkParent=null;refresh()}
+    await api("/api/chat",{channel,text,parent_id:forkParent});ta.value="";forkParent=null;
+    if(wasRunning)sys(t("queued")+": "+text.slice(0,60));refresh()}
   catch(e){toast(t("t_error")+e.message)}}
-$("input").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}
-  if(e.key==="Escape"){$("slashmenu").style.display="none"}});
+$("input").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat()}
+  if(e.key==="Escape"){$("slashmenu").style.display="none"}
+  if(e.key==="ArrowUp"&&histIdx>0){e.preventDefault();histIdx--;$("input").value=hist[histIdx]||""}
+  if(e.key==="ArrowDown"&&histIdx<hist.length){e.preventDefault();histIdx++;$("input").value=hist[histIdx]||""}
+  if(e.key==="Tab"&&e.shiftKey){e.preventDefault();
+    const chans=["all",...S.agents.filter(a=>a.role!=="coordinator").map(a=>a.name)];
+    const i=chans.indexOf(channel);channel=chans[(i+1)%chans.length];forkParent=null;render()}});
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey&&e.key==="o"){e.preventDefault();expandAll=!expandAll;render()}
+  if((e.key==="1"||e.key==="2")&&S&&S.decisions.length&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){
+    decide(S.decisions[0].id, e.key==="1"?"approve":"reject")}});
 function startSpin(){
   stopSpin();
   const box=$("msgs");const d=document.createElement("div");d.className="spin";d.id="spinner";
@@ -748,11 +802,11 @@ function startSpin(){
 }
 function stopSpin(){if(spinTimer)clearInterval(spinTimer);spinTimer=null;
   const d=$("spinner");if(d)d.remove()}
-async function runCycle(){startSpin();try{const r=await api("/api/run",{});
-  stopSpin();toast(t("t_round",{p:r.proven,r:r.refuted,s:r.split}));refresh()}
-  catch(e){stopSpin();toast(t("t_error")+e.message)}}
-async function decide(id,decision){const n=$("note-"+id);
-  try{await api("/api/decide",{ticket_id:id,decision,note:n?n.value:""});toast(t("t_decided"));refresh()}catch(e){toast(t("t_error")+e.message)}}
+async function runCycle(){if(running)return;running=true;startSpin();try{const r=await api("/api/run",{});
+  stopSpin();running=false;sys(t("sys_round")+": proven "+r.proven+" · refuted "+r.refuted+" · split "+r.split);refresh()}
+  catch(e){stopSpin();running=false;sys(t("sys_err")+": "+e.message,true);refresh()}}
+async function decide(id,decision){const n=$("dnote-"+id)||$("note-"+id);
+  try{await api("/api/decide",{ticket_id:id,decision,note:n?n.value:""});sys(t("t_decided")+" #"+id+" → "+decision);refresh()}catch(e){sys(t("sys_err")+": "+e.message,true);refresh()}}
 async function closeTicket(id,reason){try{await api("/api/close-ticket",{ticket_id:id,reason});refresh()}catch(e){toast(t("t_error")+e.message)}}
 function showTaskForm(k){$("leaf-form").style.display=k==="leaf"?"block":"none";
   $("ticket-form").style.display=k==="ticket"?"block":"none";sideTab="tasks";render();
