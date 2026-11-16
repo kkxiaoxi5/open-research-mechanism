@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.15.0 — 2026-11-16
+
+- New chapter `docs/10-the-production-line.md` (with Japanese
+  version in `docs/ja/`): how work physically moves. Contents:
+  measure first — the bottleneck is queueing, not thinking (four
+  queues: next problems, data, review, messages); four stations
+  (propose / rebuild / measure / apply) running concurrently, with
+  independent rebuild as the booking gate; the ladder — a stocked
+  queue of next levels, each carrying claim, assumptions, judging
+  method and data needs; the data base pulled once, with a
+  principal-level pay decision defaulting to *do not buy*;
+  bottleneck accounting and the compute budget (keep a reserve; on
+  failure, move stations, do not add rules); essence-first
+  questions as the ladder's quality gate — experiments judge, they
+  do not lead; two blocks, preparation and the moment, with a
+  two-way interface; and the line's own failure modes (stocking
+  for count, zero reserve, distributed building with single-point
+  release).
+- New `BOOTSTRAP.md` (plus `BOOTSTRAP.ja.md`): a step-by-step
+  protocol by which any agent software, reading only these
+  documents, reproduces the architecture — read order, runtime
+  state creation, role instantiation with hard prohibitions, a
+  known-answer demo (D1 proven / D2 refuted / D3 split→proven), a
+  six-point self-verification battery, the first operating cycle,
+  and a report-back that names what no document can install.
+- New `architecture.json`: a machine-readable manifest of the
+  components, read order, roles, runtime state files and
+  invariants, so a reproduction can be checked mechanically.
+  Docs-only release; the agent package is unchanged.
+
 ## 0.14.1 — 2026-11-15
 
 - Chapter 09 gained a closing section, "What a Document Cannot
